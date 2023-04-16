@@ -1,0 +1,101 @@
+/* rgb(244, 246, 249) background color */
+/* rgb(216, 221, 230) form border color */
+/* rgb(150, 148, 146) input border color */
+/* rgb(84, 105, 141) label text color */
+/* #0070d2 buttons, outline */
+
+* {
+    box-sizing: border-box;
+}
+
+#web-form-container {
+    display: flex;
+    justify-content: center;
+    background-color: rgb(244, 246, 249);
+}
+
+form {
+    background-color: #fff;
+    border: 1px solid rgb(216, 221, 230);
+    margin: 20px;
+    padding: 2em;
+}
+
+form h3 {
+    display: block;
+    width: 100%;
+    padding-bottom: 0.8em;
+    border-bottom: 2px solid #e5e5e5;
+    color: #032d60;
+    font-size: 22px;
+    text-align: center;
+}
+
+form .input-field {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+}
+
+form .input-field input,
+form .input-field select,
+form .input-field label,
+form .input-field .error {
+    font-size: 16px;
+}
+
+
+form .input-field label {
+    display: block;
+    width: 100%;
+    margin-bottom: 3px;
+    color: rgb(84, 105, 141);
+}
+
+form .input-field input,
+form .input-field select {
+    display: block;
+    width: 100%;
+    padding: 0.5em 1.2em;
+    outline: none;
+    border-color: rgb(150, 148, 146);
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+form .input-field .error-field {
+    border-color: #ba0517;
+    border-width: 2px;
+}
+
+form .input-field .error {
+    color: #ba0517;
+}
+
+form .input-field select {
+    background-color: #fff;
+}
+
+form .input-field input[type=text]:focus,
+form .input-field select:focus {
+    border-color: #0070d2;
+    border-width: 2px;
+}
+
+form input[type=submit] {
+    display: block;
+    width: 100%;
+    outline: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: #0070d2;
+    padding: 0.8em 0;
+    font-size: 18px;
+    color: #fff;
+}
+
+form input[type=submit]:hover {
+    background-color: rgb(0, 95, 178);
+}
