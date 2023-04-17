@@ -1,12 +1,13 @@
 import { LightningElement, api, wire } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation'
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
-import { CloseActionScreenEvent }  from 'lightning/actions'
+import { CloseActionScreenEvent } from 'lightning/actions'
 import { NavigationMixin } from 'lightning/navigation'
 import getEmailData from '@salesforce/apex/InvoiceMailer.getEmailData';
+import getRelatedInvoicePdfId from '@salesforce/apex/InvoiceMailer.getRelatedInvoicePdfId';
 import sendEmail from '@salesforce/apex/InvoiceMailer.sendEmail';
 
-export default class SendEmailComponent extends LightningElement {
+export default class SendEmailComponent extends NavigationMixin(LightningElement) {
     @api recordId;
     @api emailSubject;
 
@@ -56,22 +57,35 @@ export default class SendEmailComponent extends LightningElement {
     }
 
     handlePreview() {
-        console.log('preview');
-        // this[NavigationMixin.Navigate]({
-        //     type: 'standard__namedPage',
-        //     attributes: {
-        //         pageName: 'filePreview'
-        //     },
-        //     state: {
-        //         selectedRecordId: 
-        //     }
-        // });
+        getRelatedInvoicePdfId({
+            oppId: this.recordId
+        })
+            .then(id => {
+                console.log(`Preview: ${id}`);
+                this[NavigationMixin.Navigate]({
+                    type: 'standard__namedPage',
+                    attributes: {
+                        pageName: 'filePreview'
+                    },
+                    state: {
+                        selectedRecordId: id
+                    }
+                });
+            })
+            .catch(error => {
+                console.log(error);
+                this.dispatchEvent(new ShowToastEvent({
+                    title: 'Failure',
+                    message: 'Errors occured during open file. Possibly, file was not generated.',
+                    variant: 'error'
+                }));
+            });
     }
 
     handleSend() {
         let showSuccessToast = new ShowToastEvent({
             title: 'Success',
-            message: 'Message was sent successfuly.',
+            message: 'Message was sent successfully.',
             variant: 'success'
         });
 
@@ -87,13 +101,13 @@ export default class SendEmailComponent extends LightningElement {
             recipientId: this.recipientId,
             relatedToId: this.recordId
         })
-        .then(result => {
-            this.dispatchEvent(new CloseActionScreenEvent());
-            this.dispatchEvent(showSuccessToast);
-        })
-        .catch(error => {
-            console.log(error);
-            this.dispatchEvent(showFailToast);
-        });
+            .then(result => {
+                this.dispatchEvent(new CloseActionScreenEvent());
+                this.dispatchEvent(showSuccessToast);
+            })
+            .catch(error => {
+                console.log(error);
+                this.dispatchEvent(showFailToast);
+            });
     }
 }

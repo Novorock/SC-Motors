@@ -37,17 +37,14 @@ public with sharing class InvoiceMailer {
         List<ContentDocument> container = [SELECT Id FROM ContentDocument WHERE Title=:opp.Invoice_Number__c];
 
         if (container.size() < 1) {
-            return '';
+            throw new InvoiceMailerException('The invoice was not generated.');
         } else {
-            List<ContentDocumentLink> file = [SELECT Id FROM ContentDocumentLink WHERE ContentDocumentId=:container.get(0).Id];
-            
-            return String.valueOf(file.get(0).Id);
+            return String.valueOf(container.get(0).Id);
         }
     }
 
     @AuraEnabled
     public static void sendEmail(String subject, String body, String recipientId, String relatedToId) {
-        List<Messaging.SingleEmailMessage> container = new List<Messaging.SingleEmailMessage>();
         Messaging.SingleEmailMessage message = new Messaging.SingleEmailMessage();
 
         message.setSubject(subject);
@@ -55,10 +52,26 @@ public with sharing class InvoiceMailer {
         message.setToAddresses(new List<String> {'prefercink@gmail.com'});
         message.setTargetObjectId(recipientId);
         message.setWhatId(relatedToId);
-        container.add(message);
 
-        Messaging.SendEmailResult[] results = Messaging.sendEmail(container);
+        List<ContentDocument> container = [SELECT Id FROM ContentDocument WHERE Title=:subject];
 
+        if (container.size() < 1) {
+            throw new InvoiceMailerException('Can not attach file. The invoice was not generated.');
+        }
+
+        ContentVersion file = [SELECT VersionData, FileExtension
+            FROM ContentVersion
+            WHERE ContentDocumentId=:container.get(0).Id
+            AND IsLatest=true];
+
+        Blob binary = file.VersionData;
+        Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+        attachment.setBody(binary);
+        attachment.setFileName(subject + '.' + file.FileExtension);
+        message.setFileAttachments(new Messaging.EmailFileAttachment[]{attachment});
+
+        Messaging.SendEmailResult[] results = Messaging.sendEmail(new Messaging.SingleEmailMessage[]{message});
+        
         if (results[0].success) {
             System.debug('The email was sent successfully');
         } else {
