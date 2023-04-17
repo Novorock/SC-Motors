@@ -1,8 +1,105 @@
+<!-- sldsValidatorIgnore -->
+
 <template>
-    <lightning-quick-action-panel header="Quick Contact Edit">
-        <div slot="footer">
-            <lightning-button variant="neutral" label="Preview Invoice" onclick={handlePreview}></lightning-button>
-            <lightning-button variant="brand" label="Send" onclick={handlePreview}></lightning-button>
+    <lightning-quick-action-panel header="Send Email Invoice">
+        <div class="c-container">
+            <lightning-layout horizontal-align="center" vertical-align="center" multiple-rows>
+
+                <!-- Email subject  -->
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <lightning-layout-item size="2" flexibility="auto" padding="around-small">
+                    <div class="slds-text-heading_small">Subject:</div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="8" flexibility="auto" padding="around-small">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-size_3-of-5">
+                            <lightning-input type="text" value={emailSubject} variant="label-hidden"
+                                disabled="true"></lightning-input>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <!-- Editable body  -->
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <lightning-layout-item size="2" flexibility="auto" padding="around-small">
+                    <div class="slds-text-heading_small">Edit:</div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="8" flexibility="auto" padding="around-small">
+                    <lightning-input-rich-text value={emailBody} onchange={handleChange} placeholder="Enter email message"
+                        formats={allowedFormats}>
+                    </lightning-input-rich-text>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <!-- Recipient Name  -->
+
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <lightning-layout-item size="2" flexibility="auto" padding="around-small">
+                    <div class="slds-text-heading_small">Contact Name:</div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="8" flexibility="auto" padding="around-small">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-size_3-of-5">
+                            <lightning-input type="text" value={recipientName} variant="label-hidden"
+                                disabled="true"></lightning-input>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <!-- Recipient Email  -->
+
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+
+                <lightning-layout-item size="2" flexibility="auto" padding="around-small">
+                    <div class="slds-text-heading_small">Contact Email:</div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="8" flexibility="auto" padding="around-small">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-size_3-of-5">
+                            <lightning-input type="text" value={recipientEmail} variant="label-hidden"
+                                disabled="true"></lightning-input>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="1" flexibility="auto" padding="around-small">
+                </lightning-layout-item>
+            </lightning-layout>
+
+            <div class="footer-border-top" slot="footer">
+                <lightning-layout horizontal-align="end">
+                    <lightning-layout-item flexibility="auto" flexi padding="around-small"> <lightning-button
+                            variant="neutral" label="Preview Invoice" onclick={handlePreview}>
+                        </lightning-button>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item flexibility="auto" padding="around-small">
+                        <lightning-button variant="brand" label="Send" onclick={handleSend}>
+                        </lightning-button>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </div>
         </div>
+
+
     </lightning-quick-action-panel>
 </template>

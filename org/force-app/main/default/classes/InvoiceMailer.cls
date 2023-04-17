@@ -12,17 +12,37 @@ public with sharing class InvoiceMailer {
             WHERE IsPrimary=True
             AND OpportunityId=:oppId];
 
+        Contact recipient = [SELECT Id, Name, Email FROM Contact WHERE Id=:Primary.Contact.Id];
+
         List<Messaging.RenderEmailTemplateBodyResult> renderedEmail = Messaging.renderEmailTemplate(
-            Primary.id, oppId, new List<String> {template.Body});
+            Primary.Contact.Id, oppId, new List<String> {template.Body});
 
-        Map<String, String> data = new Map<String, String>();
-        data.put('subject', String.valueOf(opp.Invoice_Number__C));
-        data.put('recipientId', Primary.Contact.Id);
-        data.put('body', renderedEmail.get(0).getMergedBody());
+        Map<String, Object> data = new Map<String, Object> {
+            'subject' => opp.Invoice_Number__C,
+            'recipient' => new Map<String, String> {
+                'id' => String.valueOf(recipient.Id),
+                'name' => recipient.Name,
+                'email' => recipient.Email
+            },
+            'body' => renderedEmail.get(0).getMergedBody()
+        };
 
-        String serialized = JSON.serializePretty(data);
-
+        String serialized = JSON.serialize(data);
         return serialized;
+    }
+
+    @AuraEnabled
+    public static String getRelatedInvoicePdfId(String oppId) {
+        Opportunity opp = [SELECT Invoice_Number__c FROM Opportunity WHERE Id=:oppId];
+        List<ContentDocument> container = [SELECT Id FROM ContentDocument WHERE Title=:opp.Invoice_Number__c];
+
+        if (container.size() < 1) {
+            return '';
+        } else {
+            List<ContentDocumentLink> file = [SELECT Id FROM ContentDocumentLink WHERE ContentDocumentId=:container.get(0).Id];
+            
+            return String.valueOf(file.get(0).Id);
+        }
     }
 
     @AuraEnabled
@@ -31,7 +51,7 @@ public with sharing class InvoiceMailer {
         Messaging.SingleEmailMessage message = new Messaging.SingleEmailMessage();
 
         message.setSubject(subject);
-        message.setPlainTextBody(body);
+        message.setHtmlBody(body);
         message.setToAddresses(new List<String> {'prefercink@gmail.com'});
         message.setTargetObjectId(recipientId);
         message.setWhatId(relatedToId);

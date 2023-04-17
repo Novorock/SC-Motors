@@ -20,7 +20,7 @@ export default class GenerateInvoiceComponent extends LightningElement {
         
         let showSuccessToast = new ShowToastEvent({
             title: 'Success',
-            message: 'Invoice was generated successfully.',
+            message: 'Invoice was generated successfuly.',
             variant: 'success'
         });
 
