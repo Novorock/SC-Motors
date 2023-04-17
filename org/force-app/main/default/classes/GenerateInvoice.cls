@@ -3,7 +3,7 @@ public class GenerateInvoice {
     public static void generateInvoicePdf(String oppId) {
         Opportunity opp = [SELECT Invoice_Number__c FROM Opportunity WHERE Id=:oppId];
 
-        PageReference invoicePdf = Page.InvoicePDF;
+        PageReference invoicePdf = Page.InvoicePdfFile;
         invoicePdf.getParameters().put('id', oppId);
         Blob binary;
 
