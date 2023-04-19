@@ -20,7 +20,7 @@ public with sharing class InvoiceMailer {
         Map<String, Object> data = new Map<String, Object> {
             'subject' => opp.Invoice_Number__C,
             'recipient' => new Map<String, String> {
-                'id' => String.valueOf(recipient.Id),
+                'id' => recipient.Id,
                 'name' => recipient.Name,
                 'email' => recipient.Email
             },

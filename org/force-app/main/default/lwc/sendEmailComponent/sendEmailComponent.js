@@ -9,7 +9,7 @@ import sendEmail from '@salesforce/apex/InvoiceMailer.sendEmail';
 
 export default class SendEmailComponent extends NavigationMixin(LightningElement) {
     @api recordId;
-    @api emailSubject;
+    emailSubject;
 
     @api emailBody;
     allowedFormats = [
@@ -24,8 +24,8 @@ export default class SendEmailComponent extends NavigationMixin(LightningElement
     ]
 
     recipientId;
-    @api recipientName;
-    @api recipientEmail;
+    recipientName;
+    recipientEmail;
 
     @wire(CurrentPageReference)
     getStateParameters(currentPageReference) {

@@ -1,0 +1,157 @@
+<!-- sldsValidatorIgnore -->
+
+<template>
+    <lightning-card>
+        <div class="slds-grid" slot="title">
+            <div class="slds-col">
+                <lightning-icon icon-name="utility:money" size="small"></lightning-icon>
+            </div>
+
+            <div class="slds-col slds-p-left_x-small">
+                Sales per Account
+            </div>
+        </div>
+
+        <div slot="footer">
+            <lightning-badge label="Tag1"></lightning-badge>
+            <lightning-badge label="Tag2"></lightning-badge>
+            <lightning-badge label="Tag3"></lightning-badge>
+        </div>
+
+        <div class="c-container">
+            <lightning-layout class="slds-border_top slds-border_bottom" multiple-rows>
+                <lightning-layout-item size="12" padding="around-small">
+                    <span style="font-weight: bold">Quick find</span>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="1" padding="around-small">
+                    <span>Name:</span>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="4" padding="around-small">
+                    <lightning-input type="text" variant="label-hidden" placeholder="Account Name"></lightning-input>
+                </lightning-layout-item>
+                <lightning-layout-item size="7" padding="around-small"></lightning-layout-item>
+
+                <lightning-layout-item size="1" padding="around-small">
+                    <span>Total Price:</span>
+                </lightning-layout-item>
+
+                <lightning-layout-item class="slds-grid" size="4" padding="around-small">
+                    <div class="slds-col slds-size_2-of-5">
+                        <lightning-input type="text" variant="label-hidden" placeholder="From"></lightning-input>
+                    </div>
+                    <div class="slds-col slds-text-align_center slds-size_1-of-5">
+                        <span>—</span>
+                    </div>
+                    <div class="slds-col slds-size_2-of-5">
+                        <lightning-input type="text" variant="label-hidden" placeholder="To"></lightning-input>
+                    </div>
+                </lightning-layout-item>
+            </lightning-layout>
+
+
+            <lightning-accordion>
+                <template for:each={data} for:item="item">
+                    <lightning-accordion-section key={item.id} name={item.account} label={item.account}>
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered"
+                            aria-labelledby="element-with-table-label other-element-with-table-label">
+                            <thead>
+                                <th scope="coll">Opportunity Name</th>
+                                <th scope="coll">Created Date</th>
+                                <th scope="coll">Close Date</th>
+                                <th scope="coll">Amount</th>
+                                <th scope="coll"></th>
+                            </thead>
+
+                            <tbody>
+                                <template for:each={item.opportunities} for:item="opp">
+                                    <tr key={opp.id} class="slds-hint-parent">
+                                        <th data-label="Opportunity Name" scope="row">
+                                            <div class="slds-truncate" title={opp.name}>
+                                                <a href="#" tabindex="-1">{opp.name}</a>
+                                            </div>
+                                        </th>
+
+                                        <td data-label="Created Date">
+                                            <div class="slds-truncate" title="Created Date">
+                                                <lightning-formatted-date-time value={opp.createdDate} year="2-digit"
+                                                    month="short" day="2-digit" hour="numeric" weekday="long"
+                                                    time-zone="UTC"></lightning-formatted-date-time>
+                                            </div>
+                                        </td>
+
+                                        <td data-label="Close Date">
+                                            <div class="slds-truncate" title="Close Date">
+                                                <lightning-formatted-date-time value={opp.closeDate}
+                                                    time-zone="UTC"></lightning-formatted-date-time>
+                                            </div>
+                                        </td>
+
+                                        <td data-label="Created Date">
+                                            <div class="slds-truncate" title="Created Date">
+                                                €{opp.amount}
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="slds-truncate" title="Details">
+                                                <lightning-button-icon class="slds-m-left_xx-small"
+                                                    icon-name="utility:products" data-id={opp.id} data-title={opp.name}
+                                                    variant="brand" onclick={openModal} alternative-text="Details">
+                                                </lightning-button-icon>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </lightning-accordion-section>
+                </template>
+            </lightning-accordion>
+        </div>
+    </lightning-card>
+
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01"
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                        {modalContext.title}
+                    </h1>
+                </div>
+
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <template if:false={modalContext.empty}>
+                        <ul class="slds-has-dividers_top-space">
+                            <template for:each={modalContext.products} for:item="product">
+                                <li key={product.id} class="slds-item">{product.name}</li>
+
+                                <li key={product.id} class="slds-item">
+                                    <ul class="slds-is-nested">
+                                        <li>Quantity: {product.quantity}</li>
+                                        <li>Total price: €{product.total}</li>
+                                    </ul>
+                                </li>
+                            </template>
+                        </ul>
+                    </template>
+
+                    <temaplte if:true={modalContext.empty}>
+                        <div class="slds-text-align_center slds-text-heading_medium slds-text-color_inverse-weak">
+                            The list of opportunity products is empty.
+                        </div>
+                    </temaplte>
+                </div>
+
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button_brand" onclick={closeModal}
+                        aria-label="Cancel">Cancel</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </template>
+</template>
