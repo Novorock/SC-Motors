@@ -9,8 +9,35 @@ string tempvar = 'Enter_your_name_here';
 System.debug('Hello World!');
 System.debug('My name is ' + tempvar);
 
-String data = OpportunityReportPerAccountController.getDataBatchPerPage(1, 10);
+Integer min = 0;
+Integer max = 1000;
+String searchTokens = 'Hartford';
+Integer recordsAmount = 0;
+
+List<AggregateResult> results = [
+    SELECT AccountId
+    FROM Opportunity
+    GROUP BY AccountId
+    HAVING SUM(AMOUNT) > :min AND SUM(AMOUNT) < :max
+];
+
+List<Id> idsFilteredByTotalPrice = new List<Id>();
+for (AggregateResult ar : results) {
+    idsFilteredByTotalPrice.add((Id) ar.get('AccountId'));
+}
+
+if (String.isNotBlank(searchTokens)) {
+    String criteria = searchTokens + '%';
+    recordsAmount = Database.countQuery('SELECT COUNT() FROM Account WHERE Name LIKE :criteria AND Id IN :idsFilteredByTotalPrice');
+} else {
+    recordsAmount = idsFilteredByTotalPrice.size();
+}
+
+System.debug(recordsAmount);
+
+
+String data = OpportunityReportPerAccountController.getAccountOpportunityPage(1);
 System.debug(data);
 
-String data = OpportunityReportPerAccountController.getProductsDataByOppId('0062w00000KST7oAAH');
+String data = OpportunityReportPerAccountController.getAccountOpportunityPageFiltered(1, 'ha', 0, 500000);
 System.debug(data);
