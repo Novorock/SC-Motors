@@ -8,3 +8,9 @@
 string tempvar = 'Enter_your_name_here';
 System.debug('Hello World!');
 System.debug('My name is ' + tempvar);
+
+String data = OpportunityReportPerAccountController.getDataBatchPerPage(1, 10);
+System.debug(data);
+
+String data = OpportunityReportPerAccountController.getProductsDataByOppId('0062w00000KST7oAAH');
+System.debug(data);
