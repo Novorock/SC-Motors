@@ -39,6 +39,25 @@ public with sharing class OpportunityReportPerAccountController {
     }
 
     @AuraEnabled
+    public static String getAccountOpportunityById(String id) {
+        List<Account> accounts = [
+            SELECT Account.Id, Account.Name,
+            (
+                SELECT
+                    Opportunity.Name,
+                    Opportunity.CreatedDate,
+                    Opportunity.CloseDate,
+                    Opportunity.Amount
+                FROM Opportunities
+            )
+            FROM Account
+            WHERE Account.Id=:id
+        ];
+        
+        return customSerialize(accounts, 0);
+    }
+
+    @AuraEnabled
     public static String getAccountOpportunityPage(Integer pageN) {
         List<AggregateResult> results = [SELECT AccountId FROM Opportunity GROUP BY AccountId];
         
