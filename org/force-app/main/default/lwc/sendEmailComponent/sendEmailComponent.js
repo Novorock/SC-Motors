@@ -35,21 +35,21 @@ export default class SendEmailComponent extends NavigationMixin(LightningElement
     }
 
     connectedCallback() {
-        getEmailData({
-            oppId: this.recordId
-        })
-            .then(result => {
-                let data = JSON.parse(result);
-                this.emailSubject = data.subject;
-                this.emailBody = data.body;
+        var component = this;
 
-                this.recipientId = data.recipient.id;
-                this.recipientName = data.recipient.name;
-                this.recipientEmail = data.recipient.email;
-            })
-            .catch(error => {
-                console.log(error);
-            })
+        getEmailData({
+            oppId: component.recordId
+        }).then(result => {
+            let data = JSON.parse(result);
+            component.emailSubject = data.subject;
+            component.emailBody = data.body;
+
+            component.recipientId = data.recipient.id;
+            component.recipientName = data.recipient.name;
+            component.recipientEmail = data.recipient.email;
+        }).catch(error => {
+            console.log(error);
+        })
     }
 
     handleChange(event) {
@@ -57,57 +57,53 @@ export default class SendEmailComponent extends NavigationMixin(LightningElement
     }
 
     handlePreview() {
+        var component = this;
+
         getRelatedInvoicePdfId({
-            oppId: this.recordId
-        })
-            .then(id => {
-                console.log(`Preview: ${id}`);
-                this[NavigationMixin.Navigate]({
-                    type: 'standard__namedPage',
-                    attributes: {
-                        pageName: 'filePreview'
-                    },
-                    state: {
-                        selectedRecordId: id
-                    }
-                });
-            })
-            .catch(error => {
-                console.log(error);
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Failure',
-                    message: 'Errors occured during open file. Possibly, file was not generated.',
-                    variant: 'error'
-                }));
+            oppId: component.recordId
+        }).then(id => {
+            console.log(`Preview: ${id}`);
+            component[NavigationMixin.Navigate]({
+                type: 'standard__namedPage',
+                attributes: {
+                    pageName: 'filePreview'
+                },
+                state: {
+                    selectedRecordId: id
+                }
             });
+        }).catch(error => {
+            console.log(error);
+            component.dispatchEvent(new ShowToastEvent({
+                title: 'Failure',
+                message: 'Errors occured during the file opening: ' + error.body.message,
+                variant: 'error'
+            }));
+        });
     }
 
     handleSend() {
-        let showSuccessToast = new ShowToastEvent({
-            title: 'Success',
-            message: 'Message was sent successfully.',
-            variant: 'success'
-        });
-
-        let showFailToast = new ShowToastEvent({
-            title: 'Failure',
-            message: 'Error occurred during sending message. Please, try later or check recipient email.',
-            variant: 'error'
-        });
+        var component = this;
 
         sendEmail({
-            subject: this.emailSubject,
-            body: this.emailBody,
-            recipientId: this.recipientId,
-            relatedToId: this.recordId
-        })
-            .then(result => {
-                this.dispatchEvent(new CloseActionScreenEvent());
-                this.dispatchEvent(showSuccessToast);
-            })
-            .catch(error => {
-                console.log(error);
-                this.dispatchEvent(showFailToast);
-            });
+            subject: component.emailSubject,
+            body: component.emailBody,
+            recipientId: component.recipientId,
+            relatedToId: component.recordId
+        }).then(result => {
+            component.dispatchEvent(new CloseActionScreenEvent());
+            component.dispatchEvent(new ShowToastEvent({
+                title: 'Success',
+                message: 'Message was sent successfully.',
+                variant: 'success'
+            }));
+        }).catch(error => {
+            console.log(error);
+            component.dispatchEvent(new ShowToastEvent({
+                title: 'Failure',
+                message: 'Error occurred during the email sending: ' + error.body.message,
+                variant: 'error'
+            }));
+        });
     }
 }
