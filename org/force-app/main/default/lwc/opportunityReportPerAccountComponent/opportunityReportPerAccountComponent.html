@@ -13,9 +13,17 @@
         </div>
 
         <div slot="footer">
-            <lightning-badge label="Tag1"></lightning-badge>
-            <lightning-badge label="Tag2"></lightning-badge>
-            <lightning-badge label="Tag3"></lightning-badge>
+            <lightning-button-icon class="slds-m-left_x-small slds slds-p-around_medium" icon-name="utility:chevronleft" variant="brand"
+                onclick={handlePreviousPage} alternative-text="Previous">
+            </lightning-button-icon>
+
+            <span>
+                {currentPage} page of {pagesAmount}
+            </span>
+
+            <lightning-button-icon class="slds-m-left_x-small slds slds-p-around_medium" icon-name="utility:chevronright" variant="brand"
+                onclick={handleNextPage} alternative-text="Next">
+            </lightning-button-icon>
         </div>
 
         <div class="c-container">
@@ -29,7 +37,8 @@
                 </lightning-layout-item>
 
                 <lightning-layout-item size="4" padding="around-small">
-                    <lightning-input type="text" variant="label-hidden" placeholder="Account Name"></lightning-input>
+                    <lightning-input type="text" variant="label-hidden" onchange={handleAccountNameChange}
+                        placeholder="Account Name"></lightning-input>
                 </lightning-layout-item>
                 <lightning-layout-item size="7" padding="around-small"></lightning-layout-item>
 
@@ -39,22 +48,24 @@
 
                 <lightning-layout-item class="slds-grid" size="4" padding="around-small">
                     <div class="slds-col slds-size_2-of-5">
-                        <lightning-input type="text" variant="label-hidden" placeholder="From"></lightning-input>
+                        <lightning-input type="text" variant="label-hidden" onchange={handleTotalPriceFromChange}
+                            placeholder="From"></lightning-input>
                     </div>
                     <div class="slds-col slds-text-align_center slds-size_1-of-5">
                         <span>—</span>
                     </div>
                     <div class="slds-col slds-size_2-of-5">
-                        <lightning-input type="text" variant="label-hidden" placeholder="To"></lightning-input>
+                        <lightning-input type="text" variant="label-hidden" onchange={handleTotalPriceToChange}
+                            placeholder="To"></lightning-input>
                     </div>
                 </lightning-layout-item>
             </lightning-layout>
 
 
             <lightning-accordion>
-                <template for:each={data} for:item="item">
+                <template for:each={accountsList} for:item="item">
                     <lightning-accordion-section key={item.id} name={item.account} label={item.account}>
-                        <table class="slds-table slds-table_cell-buffer slds-table_bordered"
+                        <table style="border-bottom: none" class="slds-table slds-table_cell-buffer slds-table_bordered"
                             aria-labelledby="element-with-table-label other-element-with-table-label">
                             <thead>
                                 <th scope="coll">Opportunity Name</th>
@@ -97,7 +108,7 @@
                                         <td>
                                             <div class="slds-truncate" title="Details">
                                                 <lightning-button-icon class="slds-m-left_xx-small"
-                                                    icon-name="utility:products" data-id={opp.id} data-title={opp.name}
+                                                    icon-name="utility:cart" data-id={opp.id} data-title={opp.name}
                                                     variant="brand" onclick={openModal} alternative-text="Details">
                                                 </lightning-button-icon>
                                             </div>
@@ -124,7 +135,7 @@
 
                 <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
                     <template if:false={modalContext.empty}>
-                        <ul class="slds-has-dividers_top-space">
+                        <ul class="slds-has-dividers_bottom-space">
                             <template for:each={modalContext.products} for:item="product">
                                 <li key={product.id} class="slds-item">{product.name}</li>
 

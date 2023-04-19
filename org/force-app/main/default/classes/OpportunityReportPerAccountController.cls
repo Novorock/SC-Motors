@@ -1,5 +1,5 @@
 public with sharing class OpportunityReportPerAccountController {
-    public static String customSerialize(List<Account> accounts) {
+    public static String customSerialize(List<Account> accounts, Integer pagesAmount) {
         List<Map<String, Object>> batch = new List<Map<String, Object>>(); 
     
         for (Account acc : accounts) {
@@ -28,51 +28,128 @@ public with sharing class OpportunityReportPerAccountController {
                     'opportunities' => oppData
                 }
             );
-        }
+        }     
 
-        return JSON.serializePretty(batch);
+        return JSON.serializePretty(
+            new Map<String, Object> {
+                'pagesAmount' => pagesAmount,
+                'accounts' => batch
+            }
+        );
     }
 
     @AuraEnabled
-    public static Integer getPagesAmount(Integer batchSize) {
-        Integer recordsAmount = Database.countQuery('SELECT COUNT() FROM Account'); 
+    public static String getAccountOpportunityPage(Integer pageN) {
+        List<AggregateResult> results = [SELECT AccountId FROM Opportunity GROUP BY AccountId];
+        
+        List<Id> ids = new List<Id>();
+        for (AggregateResult ar : results) {
+            ids.add((Id) ar.get('AccountId'));
+        }
+
+        Integer offset = 10 * (pageN - 1);
+        Integer recordsAmount = ids.size();
+        Integer pagesAmount;
+
+        List<Account> accounts = [
+            SELECT Account.Id, Account.Name,
+            (
+                SELECT
+                    Opportunity.Name,
+                    Opportunity.CreatedDate,
+                    Opportunity.CloseDate,
+                    Opportunity.Amount
+                FROM Opportunities
+            )
+            FROM Account
+            WHERE Account.Id IN :ids
+            LIMIT 10 OFFSET :offset
+        ];
         
         if (Math.mod(recordsAmount, 10) == 0) {
-            return recordsAmount / 10;
+            pagesAmount = (Integer) recordsAmount / 10;
         } else {
-            return (Integer) Math.floor(recordsAmount / 10) + 1;
+            pagesAmount = (Integer) Math.floor(recordsAmount / 10) + 1;
         }
+        
+        return customSerialize(accounts, pagesAmount);
     }
 
     @AuraEnabled
-    public static String getAccountOpportunityPage(Integer pageN, Integer batchSize) {
-        Integer offset = batchSize * (pageN - 1);
+    public static String getAccountOpportunityPageFiltered(Integer pageN, String searchTokens, Integer min, Integer max) {
+        if (String.isBlank(searchTokens) && min == null && max == null) {
+            throw new AuraHandledException('Filter is undefined. Retrieve data without the filtering.');
+        }
 
-        List<Account> accounts = [
-            SELECT Account.Id, Account.Name,
-            (SELECT Opportunity.Name, Opportunity.CreatedDate, Opportunity.CloseDate, Opportunity.Amount
-                FROM Opportunities)
-            FROM Account
-            WHERE Account.Id IN (SELECT AccountId FROM Opportunity)
-            LIMIT :batchSize OFFSET :offset];
+        if (min < 0 || min == null) {
+            min = 0;
+        }
+
+        if (max <= 0 || max <= min || max == null) {
+            max = 2147483647;
+        }
+
+        List<AggregateResult> results = [
+            SELECT AccountId
+            FROM Opportunity
+            GROUP BY AccountId
+            HAVING SUM(AMOUNT) > :min AND SUM(AMOUNT) < :max
+        ];
         
-        return customSerialize(accounts);
-    }
-
-    @AuraEnabled
-    public static String getAccountOpportunityPageFilter(Integer pageN, Integer batchSize, String criteria) {
-        String pattern = criteria + '%';
-        Integer offset = batchSize * (pageN - 1);
-
-        List<Account> accounts = [
-            SELECT Account.Id, Account.Name,
-            (SELECT Opportunity.Name, Opportunity.CreatedDate, Opportunity.CloseDate, Opportunity.Amount
-                FROM Opportunities)
-            FROM Account
-            WHERE Account.Id IN (SELECT AccountId FROM Opportunity) AND Account.Name LIKE :pattern
-            LIMIT :batchSize OFFSET :offset];
+        List<Id> idsFilteredByTotalPrice = new List<Id>();
+        for (AggregateResult ar : results) {
+            idsFilteredByTotalPrice.add((Id) ar.get('AccountId'));
+        }
         
-        return customSerialize(accounts);
+        List<Account> accounts;
+        Integer offset = 10 * (pageN - 1);
+        Integer recordsAmount;
+        Integer pagesAmount;
+
+        if (String.isNotBlank(searchTokens)) {
+            String criteria = searchTokens + '%';
+            recordsAmount = Database.countQuery('SELECT COUNT() FROM Account WHERE Name LIKE :criteria AND Id IN :idsFilteredByTotalPrice');
+
+            accounts = [
+                SELECT Account.Id, Account.Name,
+                (
+                    SELECT
+                        Opportunity.Name,
+                        Opportunity.CreatedDate,
+                        Opportunity.CloseDate,
+                        Opportunity.Amount
+                    FROM Opportunities
+                )
+                FROM Account
+                WHERE Account.Id IN :idsFilteredByTotalPrice
+                AND Account.Name LIKE :criteria 
+                LIMIT 10 OFFSET :offset
+            ];
+        } else {
+            recordsAmount = idsFilteredByTotalPrice.size();
+
+            accounts = [
+                SELECT Account.Id, Account.Name,
+                (
+                    SELECT
+                        Opportunity.Name,
+                        Opportunity.CreatedDate,
+                        Opportunity.CloseDate,
+                        Opportunity.Amount
+                    FROM Opportunities
+                )
+                FROM Account
+                WHERE Account.Id IN :idsFilteredByTotalPrice
+                LIMIT 10 OFFSET :offset];
+        }
+
+        if (Math.mod(recordsAmount, 10) == 0) {
+            pagesAmount = (Integer) recordsAmount / 10;
+        } else {
+            pagesAmount = (Integer) Math.floor(recordsAmount / 10) + 1;
+        }
+        
+        return customSerialize(accounts, pagesAmount);
     }
 
     @AuraEnabled

@@ -1,39 +1,116 @@
-import { LightningElement } from 'lwc';
-import getPagesAmount from '@salesforce/apex/OpportunityReportPerAccountController.getPagesAmount';
+import { LightningElement, api } from 'lwc';
 import getAccountOpportunityPage from '@salesforce/apex/OpportunityReportPerAccountController.getAccountOpportunityPage';
 import getProductsDataByOppId from '@salesforce/apex/OpportunityReportPerAccountController.getProductsDataByOppId';
+import getAccountOpportunityPageFiltered from '@salesforce/apex/OpportunityReportPerAccountController.getAccountOpportunityPageFiltered';
 
 export default class OpportunityReportPerAccountComponent extends LightningElement {
+    @api accountsList
     pagesAmount;
-    currentPage = 1;
-    data;
+    @api currentPage = 1;
+    isPaginationShown = false;
 
     isModalOpen = false;
-    modalContext = {
+    @api modalContext = {
         title: '',
         products: [],
         empty: true
     };
 
+    @api searchContext = {
+        accountName: '',
+        priceFrom: 0,
+        priceTo: 0
+    };
+
+    searchTimeout = 0;
+
+    retrieveAndUpdate() {
+        if (!this.searchContext.accountName && !this.searchContext.priceFrom && !this.searchContext.priceTo) {
+            getAccountOpportunityPage({
+                pageN: this.currentPage,
+            }).then(result => {
+                let data = JSON.parse(result);
+                this.accountsList = data.accounts;
+                this.pagesAmount = data.pagesAmount;
+                this.isPaginationShown = (this.pagesAmount) > 1;
+            }).catch(error => {
+                console.log(error);
+            });
+        } else {
+            getAccountOpportunityPageFiltered({
+                pageN: this.currentPage,
+                searchTokens: this.searchContext.accountName,
+                min: this.searchContext.priceFrom,
+                max: this.searchContext.priceTo
+            }).then(result => {
+                let data = JSON.parse(result);
+                this.accountsList = data.accounts;
+                this.pagesAmount = data.pagesAmount;
+                this.isPaginationShown = (this.pagesAmount) > 1;
+            }).catch(error => {
+                console.log(error);
+            });
+        }
+    }
 
     connectedCallback() {
         // Initial data retrieve
-        getPagesAmount({
-            batchSize: 10
-        }).then(amount => {
-            this.pagesAmount = amount;
-        }).catch(error => {
-            console.log(error);
-        });
-
         getAccountOpportunityPage({
             pageN: 1,
-            batchSize: 10
-        }).then(data => {
-            this.data = JSON.parse(data);
+        }).then(result => {
+            let data = JSON.parse(result);
+            this.accountsList = data.accounts;
+            this.pagesAmount = data.pagesAmount;
+            this.isPaginationShown = (this.pagesAmount) > 1;
         }).catch(error => {
             console.log(error);
         });
+    }
+
+    handleNextPage(event) {
+        if ((this.currentPage + 1) <= this.pagesAmount) {
+            this.currentPage += 1;
+            this.retrieveAndUpdate();
+        }
+    }
+
+    handlePreviousPage(event) {
+        if ((this.currentPage - 1) > 0) {
+            this.currentPage -= 1;
+            this.retrieveAndUpdate();
+        }
+    }
+
+    handleAccountNameChange(event) {
+        clearTimeout(this.searchTimeout);
+        this.searchContext.accountName = event.target.value.trim();
+
+        this.searchTimeout = setTimeout(() => {
+            if (event.target.value !== this.searchContext.accountName) {
+                this.currentPage = 1;
+                this.retrieveAndUpdate();
+            }
+        }, 1500);
+    }
+
+    handleTotalPriceFromChange(event) {
+        clearTimeout(this.searchTimeout);
+        this.searchContext.priceFrom = parseInt(event.target.value.trim());
+
+        this.searchTimeout = setTimeout(() => {
+            this.currentPage = 1;
+            this.retrieveAndUpdate();
+        }, 1500);
+    }
+
+    handleTotalPriceToChange(event) {
+        clearTimeout(this.searchTimeout);
+        this.searchContext.priceTo = parseInt(event.target.value.trim());
+
+        this.searchTimeout = setTimeout(() => {
+            this.currentPage = 1;
+            this.retrieveAndUpdate();
+        }, 1500);
     }
 
     openModal(event) {
@@ -46,7 +123,7 @@ export default class OpportunityReportPerAccountComponent extends LightningEleme
             this.modalContext.title = title;
             this.modalContext.empty = (products.length < 1);
             this.modalContext.products = products;
-            this.isModalOpen = true; 
+            this.isModalOpen = true;
         }).catch(error => {
             console.log(error);
         });
