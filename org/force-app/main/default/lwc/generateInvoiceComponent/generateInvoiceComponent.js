@@ -1,7 +1,7 @@
-import {  LightningElement, api, wire } from 'lwc';
+import { LightningElement, api, wire } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
-import generateInvoicePdf from '@salesforce/apex/GenerateInvoice.generateInvoicePdf'
+import generateInvoicePdf from '@salesforce/apex/GenerateInvoiceAction.generateInvoicePdf'
 
 export default class GenerateInvoiceComponent extends LightningElement {
     @api recordId;
@@ -12,30 +12,33 @@ export default class GenerateInvoiceComponent extends LightningElement {
             this.recordId = currentPageReference.state.recordId;
         }
     }
-    
+
     @api invoke() {
-        if (this.recordId === null || this.recordId === undefined) {
+        var component = this;
+
+        if (component.recordId === null || component.recordId === undefined) {
             return;
         }
-        
-        let showSuccessToast = new ShowToastEvent({
-            title: 'Success',
-            message: 'Invoice was generated successfully.',
-            variant: 'success'
-        });
 
-        let showFailToast = new ShowToastEvent({
-            title: 'Failure',
-            message: 'Error occured during the generating file.',
-            variant: 'error'
-        }); 
+        component.dispatchEvent(new ShowToastEvent({
+            title: 'Note',
+            message: 'The file generating can take some time.',
+        }));
 
         generateInvoicePdf({
-            oppId: this.recordId   
+            oppId: component.recordId
         }).then(result => {
-            this.dispatchEvent(showSuccessToast);
+            component.dispatchEvent(new ShowToastEvent({
+                title: 'Success',
+                message: 'Invoice was generated successfully.',
+                variant: 'success'
+            }));
         }).catch(error => {
-            this.dispatchEvent(showFailToast);
+            component.dispatchEvent(new ShowToastEvent({
+                title: 'Failure',
+                message: 'Error occured during the file generating: ' + error.body.message,
+                variant: 'error'
+            }));
             console.log(error);
         });
     }

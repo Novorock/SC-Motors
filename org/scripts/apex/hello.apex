@@ -26,7 +26,7 @@ for (AggregateResult ar : results) {
     idsFilteredByTotalPrice.add((Id) ar.get('AccountId'));
 }
 
-if (String.isNotBlank(searchTokens)) {
+if (String.isNotBlank(searchTokens)) {Ц
     String criteria = searchTokens + '%';
     recordsAmount = Database.countQuery('SELECT COUNT() FROM Account WHERE Name LIKE :criteria AND Id IN :idsFilteredByTotalPrice');
 } else {
@@ -41,3 +41,17 @@ System.debug(data);
 
 String data = OpportunityReportPerAccountController.getAccountOpportunityPageFiltered(1, 'ha', 0, 500000);
 System.debug(data);
+
+String data = OpportunityReportPerAccountController.getAccountOpportunityById('0012w00001Kunf7AAB');
+System.debug(data);
+
+List<Contact> recipient = [SELECT Id, Name, Email FROM Contact];
+List<Object> data = new List<Object>();
+data.add(recipient);
+data.add('html body'); 
+String s = JSON.serializePretty(data);
+System.debug(data);
+
+System.debug(InvoiceMailer.getEmailData('0062w00000KRQe1AAH'));
+
+System.debug(OpportunityReportPerAccountController.getProductsDataByOppId('0062w00000KRQe1AAH'));
