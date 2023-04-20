@@ -1,7 +1,7 @@
 import { LightningElement, api, wire } from 'lwc';
 import { CurrentPageReference } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
-import generateInvoicePdf from '@salesforce/apex/GenerateInvoice.generateInvoicePdf'
+import generateInvoicePdf from '@salesforce/apex/GenerateInvoiceAction.generateInvoicePdf'
 
 export default class GenerateInvoiceComponent extends LightningElement {
     @api recordId;

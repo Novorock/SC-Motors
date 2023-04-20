@@ -11,7 +11,7 @@ export default class SendEmailComponent extends NavigationMixin(LightningElement
     @api recordId;
     emailSubject;
 
-    @api emailBody;
+    emailBody;
     allowedFormats = [
         'font',
         'size',
@@ -44,9 +44,9 @@ export default class SendEmailComponent extends NavigationMixin(LightningElement
             component.emailSubject = data.subject;
             component.emailBody = data.body;
 
-            component.recipientId = data.recipient.id;
-            component.recipientName = data.recipient.name;
-            component.recipientEmail = data.recipient.email;
+            component.recipientId = data.recipient.Id;
+            component.recipientName = data.recipient.Name;
+            component.recipientEmail = data.recipient.Email;
         }).catch(error => {
             console.log(error);
         })

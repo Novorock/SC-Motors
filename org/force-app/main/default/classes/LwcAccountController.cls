@@ -1,40 +1,33 @@
-public with sharing class OpportunityReportPerAccountController {
-    public static String customSerialize(List<Account> accounts, Integer pagesAmount) {
-        List<Map<String, Object>> batch = new List<Map<String, Object>>(); 
-    
-        for (Account acc : accounts) {
-            List<Map<String, Object>> oppData = new List<Map<String, Object>>();
-            Decimal total = 0;
-        
-            for (Opportunity opp : acc.Opportunities) {
-                total += opp.Amount;
+public with sharing class LwcAccountController {
+    public static Integer pagesAmountCalc(Integer recordsAmount) {
+        if (Math.mod(recordsAmount, 10) == 0 && recordsAmount != 0) {
+            return (Integer) recordsAmount / 10;
+        } else {
+            return (Integer) Math.floor(recordsAmount / 10) + 1;
+        }
+    }
 
-                oppData.add(
-                    new Map<String, Object> {
-                        'id' => opp.Id,
-                        'name' => opp.Name,
-                        'createdDate' => opp.CreatedDate,
-                        'closeDate' => opp.CloseDate,
-                        'amount' => opp.Amount
-                    }
-                );
+    public static String customSerialize(List<Account> container, Integer pagesAmount) {
+        List<Map<String, Object>> accounts = new List<Map<String, Object>>(); 
+    
+        for (Account c : container) {
+            Decimal total = 0;
+
+            for (Opportunity opp : c.Opportunities) {
+                total += opp.Amount;
             }
 
-            batch.add(
-                new Map<String, Object>{
-                    'id' => acc.Id,
-                    'account' => acc.Name,
-                    'total' => total,
-                    'opportunities' => oppData
+            String title = String.format('{0} ({1} €)', new String[]{c.Name, String.valueOf(total)});
+
+            accounts.add(
+                new Map<String, Object> {
+                    'Id' => c.Id, 'Name' => c.Name, 'Total' => total, 'Title' => title, 'Opportunities' => c.Opportunities
                 }
             );
         }     
 
-        return JSON.serializePretty(
-            new Map<String, Object> {
-                'pagesAmount' => pagesAmount,
-                'accounts' => batch
-            }
+        return JSON.serialize(
+            new Map<String, Object> {'PagesAmount' => pagesAmount, 'Accounts' => accounts}
         );
     }
 
@@ -68,7 +61,6 @@ public with sharing class OpportunityReportPerAccountController {
 
         Integer offset = 10 * (pageN - 1);
         Integer recordsAmount = ids.size();
-        Integer pagesAmount;
 
         List<Account> accounts = [
             SELECT Account.Id, Account.Name,
@@ -85,13 +77,7 @@ public with sharing class OpportunityReportPerAccountController {
             LIMIT 10 OFFSET :offset
         ];
         
-        if (Math.mod(recordsAmount, 10) == 0) {
-            pagesAmount = (Integer) recordsAmount / 10;
-        } else {
-            pagesAmount = (Integer) Math.floor(recordsAmount / 10) + 1;
-        }
-        
-        return customSerialize(accounts, pagesAmount);
+        return customSerialize(accounts, pagesAmountCalc(recordsAmount));
     }
 
     @AuraEnabled
@@ -123,7 +109,6 @@ public with sharing class OpportunityReportPerAccountController {
         List<Account> accounts;
         Integer offset = 10 * (pageN - 1);
         Integer recordsAmount;
-        Integer pagesAmount;
 
         if (String.isNotBlank(searchTokens)) {
             String criteria = searchTokens + '%';
@@ -159,35 +144,21 @@ public with sharing class OpportunityReportPerAccountController {
                 )
                 FROM Account
                 WHERE Account.Id IN :idsFilteredByTotalPrice
-                LIMIT 10 OFFSET :offset];
-        }
-
-        if (Math.mod(recordsAmount, 10) == 0) {
-            pagesAmount = (Integer) recordsAmount / 10;
-        } else {
-            pagesAmount = (Integer) Math.floor(recordsAmount / 10) + 1;
+                LIMIT 10 OFFSET :offset
+            ];
         }
         
-        return customSerialize(accounts, pagesAmount);
+        return customSerialize(accounts, pagesAmountCalc(recordsAmount));
     }
 
     @AuraEnabled
-    public static String getProductsDataByOppId(String oppId) {
-        List<Map<String, Object>> products = new List<Map<String, Object>>();
-                
-        for (OpportunityLineItem product : [SELECT Id, Product2.Name, Quantity, TotalPrice
-                                            FROM OpportunityLineItem
-                                            WHERE OpportunityId =:oppId]) {
-            products.add(
-                new Map<String, Object> {
-                    'id' => product.Id,
-                    'name' => product.Product2.Name,
-                    'quantity' => product.Quantity,
-                    'total' => product.TotalPrice
-                }
-            );
-        }
-
-        return JSON.serializePretty(products);
+    public static String getProductsByOppId(String oppId) {
+        List<OpportunityLineItem> products = [
+            SELECT Id, Product2.Name, Quantity, TotalPrice
+            FROM OpportunityLineItem
+            WHERE OpportunityId =:oppId
+        ];
+        
+        return JSON.serialize(products);
     }
 }

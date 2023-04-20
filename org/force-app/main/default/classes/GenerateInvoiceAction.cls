@@ -1,7 +1,11 @@
-public class GenerateInvoice {
+public class GenerateInvoiceAction {
     @AuraEnabled
     public static void generateInvoicePdf(String oppId) {
-        Opportunity opp = [SELECT Invoice_Number__c FROM Opportunity WHERE Id=:oppId];
+        Opportunity opp = [
+            SELECT Invoice_Number__c
+            FROM Opportunity
+            WHERE Id=:oppId
+        ];
 
         PageReference invoicePdf = Page.InvoicePdfFile;
         invoicePdf.getParameters().put('id', oppId);
@@ -20,7 +24,11 @@ public class GenerateInvoice {
         version.VersionData = binary;
         version.IsMajorVersion = true; 
         
-        List<ContentDocument> documents = [SELECT Id FROM ContentDocument WHERE Title=:opp.Invoice_Number__c];
+        List<ContentDocument> documents = [
+            SELECT Id
+            FROM ContentDocument
+            WHERE Title=:opp.Invoice_Number__c
+        ];
 
         if (documents.size() > 0) {
             ContentDocument document = documents.get(0);
@@ -29,7 +37,11 @@ public class GenerateInvoice {
             insert version;
         } else {
             insert version;
-            Id docId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id=:version.Id].ContentDocumentId;
+            Id docId = [
+                SELECT ContentDocumentId
+                FROM ContentVersion
+                WHERE Id=:version.Id
+            ].ContentDocumentId;
 
             ContentDocumentLink link = new ContentDocumentLink();
             link.ContentDocumentId = docId;
