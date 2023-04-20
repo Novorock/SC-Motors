@@ -1,4 +1,4 @@
-# Salesforce DX Project: Next Steps
+# Success Motors
 
 The salesforce application to automate routine work of managers and salers in the cars and spare parts trading.
 
