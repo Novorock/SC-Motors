@@ -106,24 +106,24 @@
                         <span>Name:</span>
                     </lightning-layout-item>
 
-                    <lightning-layout-item size="2" padding="around-small">
-                        <lightning-input type="text" variant="label-hidden" onchange={handleAccountNameChange}
-                            placeholder="Account Name"></lightning-input>
+                    <lightning-layout-item size="10" class="slds-grid" padding="around-small">
+                        <div class="slds-col slds-size_4-of-8">
+                            <lightning-input type="text" variant="label-hidden" onchange={handleAccountNameChange}
+                                placeholder="Account Name"></lightning-input>
+                        </div>
                     </lightning-layout-item>
-
-                    <lightning-layout-item size="8" padding="around-small"></lightning-layout-item>
 
                     <lightning-layout-item size="2" padding="around-small">
                         <span>Total Price:</span>
                     </lightning-layout-item>
 
-                    <lightning-layout-item size="2" class="slds-grid" padding="around-small">
-                        <div class="slds-col slds-size_2-of-4 slds-p-right_xx-small">
+                    <lightning-layout-item size="10" class="slds-grid" padding="around-small">
+                        <div class="slds-col slds-size_2-of-8 slds-p-right_xx-small">
                             <lightning-input type="text" variant="label-hidden" onchange={handleTotalPriceFromChange}
                                 placeholder="From"></lightning-input>
                         </div>
 
-                        <div class="slds-col slds-size_2-of-4 slds-p-left_xx-small">
+                        <div class="slds-col slds-size_2-of-8 slds-p-left_xx-small">
                             <lightning-input type="text" variant="label-hidden" onchange={handleTotalPriceToChange}
                                 placeholder="To"></lightning-input>
                         </div>

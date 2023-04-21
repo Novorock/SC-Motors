@@ -55,3 +55,8 @@ System.debug(data);
 System.debug(InvoiceMailer.getEmailData('0062w00000KRQe1AAH'));
 
 System.debug(OpportunityReportPerAccountController.getProductsDataByOppId('0062w00000KRQe1AAH'));
+
+String subject = 'INV-005030sdfaf';
+Pattern InvoiceSubjectPattern = Pattern.compile('INV-\\d{6}');
+Matcher SubjectMatcher = InvoiceSubjectPattern.matcher(subject);
+System.debug(SubjectMatcher.matches());
