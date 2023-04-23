@@ -1,4 +1,4 @@
- global class EmailInvoiceApproval implements Messaging.InboundEmailHandler {
+global class EmailInvoiceApproval implements Messaging.InboundEmailHandler {
     
     global Messaging.InboundEmailResult handleInboundEmail(
         Messaging.inboundEmail email, Messaging.InboundEnvelope env) {
@@ -8,19 +8,24 @@
             Pattern InvoiceSubjectPattern = Pattern.compile('INV-\\d{6}');
             Matcher SubjectMatcher = InvoiceSubjectPattern.matcher(subject);  
             
-            if (SubjectMatcher.matches()) {
+            if (SubjectMatcher.find()) {
+                String invoiceNumber = subject.substring(SubjectMatcher.start(), SubjectMatcher.end());
+                
                 Opportunity opp = [
                     SELECT Id, StageName
                     FROM Opportunity
-                    WHERE Invoice_Number__c=:subject
+                    WHERE Invoice_Number__c=:invoiceNumber
                 ];
                 
                 if (opp.StageName.equals('Prospecting')) {
                     String body = email.plainTextBody.toLowerCase();
-                    Boolean approved = body.contains('approved');
-                    Boolean rejected = body.contains('rejected');
+                    
+                    // The inbound message can contains several marks of 'approved' or 'rejected' answer,
+                    // since the original text can be included. 
+                   	Integer approvedCounter = body.countMatches('approved');
+					Integer rejectedCounter = body.countMatches('rejected');
 
-                    if (approved) {
+                    if (approvedCounter > rejectedCounter && approvedCounter != 0) {
                         Schema.DescribeFieldResult field =
                         Opportunity.StageName.getDescribe();
     
@@ -35,7 +40,7 @@
                         }
 
                         update opp;
-                    } else if (rejected) {
+                    } else if (rejectedCounter != 0) {
                         opp.StageName = 'Closed Lost';
                         update opp;
                     } else {

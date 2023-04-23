@@ -37,6 +37,7 @@ public class GenerateInvoiceAction {
             insert version;
         } else {
             insert version;
+            
             Id docId = [
                 SELECT ContentDocumentId
                 FROM ContentVersion
