@@ -13,7 +13,8 @@ public with sharing class InvoiceMailer {
             WHERE DeveloperName = 'Opportunity_Invoice_Attachment'
         ];
 
-        OpportunityContactRole Primary = [SELECT Contact.Id
+        OpportunityContactRole Primary = [
+            SELECT Contact.Id
             FROM OpportunityContactRole
             WHERE IsPrimary=True
             AND OpportunityId=:oppId
@@ -60,12 +61,30 @@ public with sharing class InvoiceMailer {
     public static void sendEmail(String subject, String body, String recipientId, String relatedToId) {
         Messaging.SingleEmailMessage message = new Messaging.SingleEmailMessage();
 
-        message.setSubject(subject);
-        message.setHtmlBody(body);
-        message.setToAddresses(new List<String> {'prefercink@gmail.com'});
+        EmailServicesFunction emailFunction = [
+            SELECT Id
+            FROM EmailServicesFunction
+            WHERE FunctionName='Email Invoice Approval Service'
+       	];
+        
+        List<EmailServicesAddress> eServiceAddrs = [
+            SELECT Id, LocalPart, EmailDomainName
+            FROM EmailServicesAddress
+            WHERE FunctionId=:emailFunction.Id
+        ];
+        
+        String replyAddr = 
+            eServiceAddrs.get(0).LocalPart +
+            '@' +
+            eServiceAddrs.get(0).EmailDomainName;
+        
         message.setTargetObjectId(recipientId);
         message.setWhatId(relatedToId);
-
+        message.setSenderDisplayName('Success Motors Support');
+       	message.setReplyTo(replyAddr);
+        message.setSubject(subject);
+        message.setHtmlBody(body);
+            
         List<ContentDocument> container = [
             SELECT Id
             FROM ContentDocument

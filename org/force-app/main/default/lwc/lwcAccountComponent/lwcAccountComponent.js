@@ -14,12 +14,15 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
     // Custom Lightning Tab Stuff 
     accountsList = [];
     isEmptyList = false;
-    pagesAmount = 1;
-    currentPage = 1;
-    paginationDisabled = false;
+
+    paginationContext = {
+        pagesAmount: 1,
+        currentPage: 1,
+        previousDisabled: false,
+        nextDisabled: false
+    };
 
     isModalOpen = false;
-
     modalContext = {
         title: '',
         items: [],
@@ -38,9 +41,23 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
         var component = this;
 
         component.accountsList = data.Accounts;
-        component.pagesAmount = data.PagesAmount;
-        component.paginationDisabled = (component.pagesAmount) < 2;
-        component.currentPage = pageNumber;
+        component.paginationContext.pagesAmount = data.PagesAmount;
+
+        if (component.paginationContext.pagesAmount < 2) {
+            component.paginationContext.previousDisabled = true;
+            component.paginationContext.nextDisabled = true;
+        } else if (pageNumber == component.paginationContext.pagesAmount) {
+            component.paginationContext.nextDisabled = true;
+            component.paginationContext.previousDisabled = false;
+        } else if (pageNumber == 1) {
+            component.paginationContext.previousDisabled = true;
+            component.paginationContext.nextDisabled = false;
+        } else {
+            component.paginationContext.previousDisabled = false;
+            component.paginationContext.nextDisabled = false;
+        }
+
+        component.paginationContext.currentPage = pageNumber;
 
         if (component.accountsList.length < 1) {
             component.isEmptyList = true;
@@ -94,15 +111,11 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
     }
 
     handleNextPage(event) {
-        if ((this.currentPage + 1) <= this.pagesAmount) {
-            this.retrieveAndUpdate(this.currentPage + 1);
-        }
+        this.retrieveAndUpdate(this.paginationContext.currentPage + 1);
     }
 
     handlePreviousPage(event) {
-        if ((this.currentPage - 1) > 0) {
-            this.retrieveAndUpdate(this.currentPage - 1);
-        }
+        this.retrieveAndUpdate(this.paginationContext.currentPage - 1);
     }
 
     handleAccountNameChange(event) {
@@ -150,8 +163,7 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
             let products = JSON.parse(data);
             component.modalContext.title = title;
             component.modalContext.empty = (products.length < 1);
-            component.modalContext.items
-                = products;
+            component.modalContext.items = products;
             component.isModalOpen = true;
         }).catch(error => {
             console.log(error);

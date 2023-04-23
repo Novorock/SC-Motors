@@ -10,60 +10,65 @@
                             currency-code="EUR"></lightning-formatted-number>
                     </span>
                 </div>
-                <table style="border-bottom: none" class="slds-table slds-table_cell-buffer slds-table_bordered"
-                    aria-labelledby="element-with-table-label other-element-with-table-label">
-                    <thead>
-                        <th scope="coll">Opportunity Name</th>
-                        <th scope="coll">Created Date</th>
-                        <th scope="coll">Close Date</th>
-                        <th scope="coll">Amount</th>
-                        <th scope="coll"></th>
-                    </thead>
 
-                    <tbody>
-                        <template for:each={currentRecord.Opportunities} for:item="opp">
-                            <tr key={opp.Id} class="slds-hint-parent">
-                                <th data-label="Opportunity Name" scope="row">
-                                    <div class="slds-truncate" title={opp.Name}>
-                                        <a data-id={opp.Id} onclick={handleRedirect} tabindex="-1">{opp.Name}</a>
-                                    </div>
-                                </th>
+                <div class="slds-scrollable slds-p-around_small">
+                    <table style="border-bottom: none"
+                        class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped" role="grid"
+                        aria-labelledby="element-with-table-label other-element-with-table-label">
+                        <thead>
+                            <th scope="col">Opportunity Name</th>
+                            <th scope="col">Created Date</th>
+                            <th scope="col">Close Date</th>
+                            <th scope="col">Amount</th>
 
-                                <td data-label="Created Date">
-                                    <div class="slds-truncate" title="Created Date">
-                                        <lightning-formatted-date-time value={opp.CreatedDate} year="numeric"
-                                            month="numeric" day="numeric" hour="2-digit" minute="2-digit">
-                                        </lightning-formatted-date-time>
-                                    </div>
-                                </td>
+                            <th class="slds-cell_action-mode" scope="col" style="width:3.25rem">
+                                <div class="slds-truncate slds-assistive-text" title="Actions">Actions</div>
+                            </th>
+                        </thead>
 
-                                <td data-label="Close Date">
-                                    <div class="slds-truncate" title="Close Date">
-                                        <lightning-formatted-date-time value={opp.CloseDate} year="numeric"
-                                            month="numeric" day="numeric" hour="2-digit" minute="2-digit">
-                                        </lightning-formatted-date-time>
-                                    </div>
-                                </td>
+                        <tbody>
+                            <template for:each={currentRecord.Opportunities} for:item="opp">
+                                <tr key={opp.Id} class="slds-hint-parent" role="gridcell">
+                                    <th data-label="Opportunity Name" scope="row">
+                                        <div class="slds-truncate" title={opp.Name}>
+                                            <a data-id={opp.Id} onclick={handleRedirect} tabindex="-1">{opp.Name}</a>
+                                        </div>
+                                    </th>
 
-                                <td data-label="Created Date">
-                                    <div class="slds-truncate" title="Amount">
-                                        <lightning-formatted-number value={opp.Amount} format-style="currency"
-                                            currency-code="EUR"></lightning-formatted-number>
-                                    </div>
-                                </td>
+                                    <td data-label="Created Date" role="gridcell">
+                                        <div class="slds-truncate" title="Created Date">
+                                            <lightning-formatted-date-time value={opp.CreatedDate} year="numeric"
+                                                month="numeric" day="numeric" hour="2-digit" minute="2-digit">
+                                            </lightning-formatted-date-time>
+                                        </div>
+                                    </td>
 
-                                <td>
-                                    <div class="slds-truncate" title="Details">
-                                        <lightning-button-icon class="slds-m-left_xx-small" icon-name="utility:cart"
+                                    <td data-label="Close Date" role="gridcell">
+                                        <div class="slds-truncate" title="Close Date">
+                                            <lightning-formatted-date-time value={opp.CloseDate} year="numeric"
+                                                month="numeric" day="numeric" hour="2-digit" minute="2-digit">
+                                            </lightning-formatted-date-time>
+                                        </div>
+                                    </td>
+
+                                    <td data-label="Created Date" role="gridcell">
+                                        <div class="slds-truncate" title="Amount">
+                                            <lightning-formatted-number value={opp.Amount} format-style="currency"
+                                                currency-code="EUR"></lightning-formatted-number>
+                                        </div>
+                                    </td>
+
+                                    <td class="slds-cell_action-mode" role="gridcell">
+                                        <lightning-button-icon class="slds-m-left_xx-small" icon-name="utility:list"
                                             data-id={opp.Id} data-title={opp.Name} variant="brand" onclick={openModal}
                                             alternative-text="Details">
                                         </lightning-button-icon>
-                                    </div>
-                                </td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </lightning-card>
     </template>
@@ -81,16 +86,16 @@
             </div>
 
             <div slot="footer">
-                <lightning-button-icon disabled={paginationDisabled}
+                <lightning-button-icon disabled={paginationContext.previousDisabled}
                     class="slds-m-left_x-small slds slds-p-around_medium" icon-name="utility:chevronleft"
                     variant="brand" onclick={handlePreviousPage} alternative-text="Previous">
                 </lightning-button-icon>
 
                 <span>
-                    {currentPage} page of {pagesAmount}
+                    {paginationContext.currentPage} page of {paginationContext.pagesAmount}
                 </span>
 
-                <lightning-button-icon disabled={paginationDisabled}
+                <lightning-button-icon disabled={paginationContext.nextDisabled}
                     class="slds-m-left_x-small slds slds-p-around_medium" icon-name="utility:chevronright"
                     variant="brand" onclick={handleNextPage} alternative-text="Next">
                 </lightning-button-icon>
@@ -99,7 +104,7 @@
             <div class="c-container">
                 <lightning-layout class="slds-border_top slds-border_bottom" multiple-rows>
                     <lightning-layout-item size="12" padding="around-small">
-                        <span style="font-weight: bold">Quick find</span>
+                        <span style="font-weight: bold">Quick Find</span>
                     </lightning-layout-item>
 
                     <lightning-layout-item size="2" padding="around-small">
@@ -132,65 +137,71 @@
 
                 <lightning-accordion>
                     <template if:false={isEmptyList} for:each={accountsList} for:item="item">
-                        <lightning-accordion-section key={item.Id} name={item.Name} label={item.Title}>
-                            <table style="border-bottom: none"
-                                class="slds-table slds-table_cell-buffer slds-table_bordered"
-                                aria-labelledby="element-with-table-label other-element-with-table-label">
-                                <thead>
-                                    <th scope="coll">Opportunity Name</th>
-                                    <th scope="coll">Created Date</th>
-                                    <th scope="coll">Close Date</th>
-                                    <th scope="coll">Amount</th>
-                                    <th scope="coll"></th>
-                                </thead>
+                        <lightning-accordion-section class="slds-grid" key={item.Id} name={item.Name}
+                            label={item.Title}>
+                            <div class="slds-scrollable slds-size_2-of-3">
+                                <table style="border-bottom: none"
+                                    class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped"
+                                    role="grid"
+                                    aria-labelledby="element-with-table-label other-element-with-table-label">
+                                    <thead>
+                                        <th scope="col">Opportunity Name</th>
+                                        <th scope="col">Created Date</th>
+                                        <th scope="col">Close Date</th>
+                                        <th scope="col">Amount</th>
 
-                                <tbody>
-                                    <template for:each={item.Opportunities} for:item="opp">
-                                        <tr key={opp.Id} class="slds-hint-parent">
-                                            <th data-label="Opportunity Name" scope="row">
-                                                <div class="slds-truncate" title={opp.Name}>
-                                                    <a data-id={opp.Id} onclick={handleRedirect}
-                                                        tabindex="-1">{opp.Name}</a>
-                                                </div>
-                                            </th>
+                                        <th class="slds-cell_action-mode" scope="col" style="width:3.25rem">
+                                            <div class="slds-truncate slds-assistive-text" title="Actions">Actions</div>
+                                        </th>
+                                    </thead>
 
-                                            <td data-label="Created Date">
-                                                <div class="slds-truncate" title="Created Date">
-                                                    <lightning-formatted-date-time value={opp.CreatedDate}
-                                                        year="numeric" month="numeric" day="numeric">
-                                                    </lightning-formatted-date-time>
-                                                </div>
-                                            </td>
+                                    <tbody>
+                                        <template for:each={item.Opportunities} for:item="opp">
+                                            <tr key={opp.Id} class="slds-hint-parent" role="gridcell">
+                                                <th data-label="Opportunity Name" scope="row">
+                                                    <div class="slds-truncate" title={opp.Name}>
+                                                        <a data-id={opp.Id} onclick={handleRedirect}
+                                                            tabindex="-1">{opp.Name}</a>
+                                                    </div>
+                                                </th>
 
-                                            <td data-label="Close Date">
-                                                <div class="slds-truncate" title="Close Date">
-                                                    <lightning-formatted-date-time value={opp.CloseDate} year="numeric"
-                                                        month="numeric" day="numeric" hour="2-digit" minute="2-digit"
-                                                        time-zone-name="short">
-                                                    </lightning-formatted-date-time>
-                                                </div>
-                                            </td>
+                                                <td data-label="Created Date" role="gridcell">
+                                                    <div class="slds-truncate" title="Created Date">
+                                                        <lightning-formatted-date-time value={opp.CreatedDate}
+                                                            year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                            minute="2-digit">
+                                                        </lightning-formatted-date-time>
+                                                    </div>
+                                                </td>
 
-                                            <td data-label="Created Date">
-                                                <div class="slds-truncate" title="Amount">
-                                                    <lightning-formatted-number value={opp.Amount}
-                                                        format-style="currency"
-                                                        currency-code="EUR"></lightning-formatted-number>
-                                                </div>
-                                            </td>
+                                                <td data-label="Close Date" role="gridcell">
+                                                    <div class="slds-truncate" title="Close Date">
+                                                        <lightning-formatted-date-time value={opp.CloseDate}
+                                                            year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                            minute="2-digit">
+                                                        </lightning-formatted-date-time>
+                                                    </div>
+                                                </td>
 
-                                            <td>
-                                                <div class="slds-truncate" title="Details">
+                                                <td data-label="Created Date" role="gridcell">
+                                                    <div class="slds-truncate" title="Amount">
+                                                        <lightning-formatted-number value={opp.Amount}
+                                                            format-style="currency"
+                                                            currency-code="EUR"></lightning-formatted-number>
+                                                    </div>
+                                                </td>
+
+                                                <td class="slds-cell_action-mode" role="gridcell">
                                                     <lightning-button-icon class="slds-m-left_xx-small"
-                                                        icon-name="utility:cart" data-id={opp.Id} data-title={opp.Name}
+                                                        icon-name="utility:list" data-id={opp.Id} data-title={opp.Name}
                                                         variant="brand" onclick={openModal} alternative-text="Details">
                                                     </lightning-button-icon>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
                         </lightning-accordion-section>
                     </template>
                 </lightning-accordion>
