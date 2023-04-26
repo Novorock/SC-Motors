@@ -2,29 +2,30 @@
 private class InvoiceMailerTest {
     @TestSetup
     private static void setup() {
-        insert new Opportunity(
+        Opportunity opp = new Opportunity(
             Name='Test Opportunity',
             StageName='Prospecting',
             CloseDate=Date.today().addDays(20)
         );
+        
+        insert opp;
         
         /*insert new EmailTemplate(
         	Name='Template',
             Body='Body<{!Contact.Name}, {!Opportunity.Name}>'
         );*/
         
-        insert new Contact(
+        Contact contact = new Contact(
         	FirstName='Test',
             LastName='Contact',
             Email='test.contact@gmail.com'
         );
         
-        Id contactId = [SELECT Id FROM Contact WHERE Name='Test Contact'].Id;
-        Id oppId = [SELECT Id FROM Opportunity WHERE Name='Test Opportunity'].Id;
+        insert contact;
         
         insert new OpportunityContactRole(
-        	OpportunityId=oppId,
-            ContactId=contactId,
+        	OpportunityId=opp.Id,
+            ContactId=contact.Id,
             IsPrimary=True
         );
     }
