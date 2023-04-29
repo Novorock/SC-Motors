@@ -4,7 +4,8 @@
         <members>*</members>
         <name>ApexClass</name>
     </types>
-    <!--<types>
+    
+    <!-- <types>
         <members>*</members>
         <name>ApexComponent</name>
     </types>
@@ -12,7 +13,7 @@
     <types>
         <members>*</members>
         <name>LightningComponentBundle</name>
-    </types>-->
+    </types> -->
     
     <version>56.0</version>
 </Package>

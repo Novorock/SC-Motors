@@ -60,3 +60,28 @@ String subject = 'INV-005030sdfaf';
 Pattern InvoiceSubjectPattern = Pattern.compile('INV-\\d{6}');
 Matcher SubjectMatcher = InvoiceSubjectPattern.matcher(subject);
 System.debug(SubjectMatcher.matches());
+
+List<String> tokens = new List<String> {'token1', 'token2', 'token3'};
+System.debug(String.join(tokens, ', '));
+
+// Test Query Builder
+
+QueryBuilder builder = new QueryBuilder();
+// builder.setTotalPriceFilter('200');
+builder.setPage(2);
+List<AggregateResult> results = (List<AggregateResult>) builder.execute();
+
+for (AggregateResult result : results) {
+    System.debug(result.get('AccountId') + ' ' + result.get('Total') + result.get('AccountName'));
+}
+
+System.debug(LwcAccountController.getPagesTotalAmount(null, null));
+
+System.debug(LwcAccountController.getPagesTotalAmount('fadfa', null));
+
+System.debug(LwcAccountController.getDataByPage(1, 'e', null));
+
+System.debug(LwcAccountController.getDataById('0012w00001Kunf8AAB'));
+
+System.debug(LwcAccountController.getProductsByOppId('0062w00000Lp6OVAAZ'));
+
