@@ -6,7 +6,7 @@
             <div class="c-container">
                 <div class="slds-p-around_small">
                     <span style="font-weight: bold">
-                        Total Price: <lightning-formatted-number value={currentRecord.Total} format-style="currency"
+                        Total Price: <lightning-formatted-number value={accountData.Total} format-style="currency"
                             currency-code="EUR"></lightning-formatted-number>
                     </span>
                 </div>
@@ -27,7 +27,7 @@
                         </thead>
 
                         <tbody>
-                            <template for:each={currentRecord.Opportunities} for:item="opp">
+                            <template for:each={accountData.Opportunities} for:item="opp">
                                 <tr key={opp.Id} class="slds-hint-parent" role="gridcell">
                                     <th data-label="Opportunity Name" scope="row">
                                         <div class="slds-truncate" title={opp.Name}>
@@ -60,7 +60,7 @@
 
                                     <td class="slds-cell_action-mode" role="gridcell">
                                         <lightning-button-icon class="slds-m-left_xx-small" icon-name="utility:list"
-                                            data-id={opp.Id} data-title={opp.Name} variant="brand" onclick={openModal}
+                                            data-id={opp.Id} data-title={opp.Name} variant="brand" onclick={handleOpenModal}
                                             alternative-text="Details">
                                         </lightning-button-icon>
                                     </td>
@@ -92,7 +92,7 @@
                 </lightning-button-icon>
 
                 <span>
-                    {paginationContext.currentPage} page of {paginationContext.pagesAmount}
+                    {paginationContext.currentPage} page of {paginationContext.pagesTotalAmount}
                 </span>
 
                 <lightning-button-icon disabled={paginationContext.nextDisabled}
@@ -101,44 +101,22 @@
                 </lightning-button-icon>
             </div>
 
-            <div class="c-container">
-                <lightning-layout class="slds-border_top slds-border_bottom" multiple-rows>
-                    <lightning-layout-item size="12" padding="around-small">
-                        <span style="font-weight: bold">Quick Find</span>
-                    </lightning-layout-item>
-
-                    <lightning-layout-item size="2" padding="around-small">
-                        <span>Name:</span>
-                    </lightning-layout-item>
-
-                    <lightning-layout-item size="10" class="slds-grid" padding="around-small">
-                        <div class="slds-col slds-size_4-of-8">
-                            <lightning-input type="text" variant="label-hidden" onchange={handleAccountNameChange}
-                                placeholder="Account Name"></lightning-input>
-                        </div>
-                    </lightning-layout-item>
-
-                    <lightning-layout-item size="2" padding="around-small">
-                        <span>Total Price:</span>
-                    </lightning-layout-item>
-
-                    <lightning-layout-item size="10" class="slds-grid" padding="around-small">
-                        <div class="slds-col slds-size_2-of-8 slds-p-right_xx-small">
-                            <lightning-input type="text" variant="label-hidden" onchange={handleTotalPriceFromChange}
-                                placeholder="From"></lightning-input>
-                        </div>
-
-                        <div class="slds-col slds-size_2-of-8 slds-p-left_xx-small">
-                            <lightning-input type="text" variant="label-hidden" onchange={handleTotalPriceToChange}
-                                placeholder="To"></lightning-input>
-                        </div>
-                    </lightning-layout-item>
-                </lightning-layout>
+            <div class="c-container" style="border-top: 2px solid #e5e5e5">
+                <div>
+                    <div class="slds-p-around_medium lgc-bg">
+                        <lightning-input
+                            type="text"
+                            placeholder="Enter Name and Total Price"
+                            label="Quick Find:"
+                            onchange={handleQuickFind}
+                            >
+                        </lightning-input>
+                    </div>
+                </div>
 
                 <lightning-accordion>
-                    <template if:false={isEmptyList} for:each={accountsList} for:item="item">
-                        <lightning-accordion-section class="slds-grid" key={item.Id} name={item.Name}
-                            label={item.Title}>
+                    <template if:false={isEmptyList} for:each={accountData} for:item="item">
+                        <lightning-accordion-section class="slds-grid" key={item.Id} label={item.Title}>
                             <div style="margin: 0 auto" class="slds-scrollable slds-size_10-of-12">
                                 <table style="border-bottom: none"
                                     class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped"
@@ -194,7 +172,8 @@
                                                 <td class="slds-cell_action-mode" role="gridcell">
                                                     <lightning-button-icon class="slds-m-left_xx-small"
                                                         icon-name="utility:list" data-id={opp.Id} data-title={opp.Name}
-                                                        variant="brand" onclick={openModal} alternative-text="Details">
+                                                        variant="brand" onclick={handleOpenModal}
+                                                        alternative-text="Details">
                                                     </lightning-button-icon>
                                                 </td>
                                             </tr>
@@ -249,7 +228,7 @@
                 </div>
 
                 <div class="slds-modal__footer">
-                    <button class="slds-button slds-button_brand" onclick={closeModal}
+                    <button class="slds-button slds-button_brand" onclick={handleCloseModal}
                         aria-label="Cancel">Cancel</button>
                 </div>
             </div>

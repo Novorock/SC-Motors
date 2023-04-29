@@ -1,22 +1,19 @@
 import { LightningElement, api } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation'
-import getAccountOpportunityPage from '@salesforce/apex/LwcAccountController.getAccountOpportunityPage';
+import getDataByPage from '@salesforce/apex/LwcAccountController.getDataByPage';
+import getDataById from '@salesforce/apex/LwcAccountController.getDataById';
+import getPagesTotalAmount from '@salesforce/apex/LwcAccountController.getPagesTotalAmount';
 import getProductsByOppId from '@salesforce/apex/LwcAccountController.getProductsByOppId';
-import getAccountOpportunityPageFiltered from '@salesforce/apex/LwcAccountController.getAccountOpportunityPageFiltered';
-import getAccountOpportunityById from '@salesforce/apex/LwcAccountController.getAccountOpportunityById';
 
 export default class LwcAccountComponent extends NavigationMixin(LightningElement) {
-    // Record Page Stuff
     @api recordId;
     isRecordPage = false;
-    currentRecord = {};
 
-    // Custom Lightning Tab Stuff 
-    accountsList = [];
+    accountData = [];
     isEmptyList = false;
 
     paginationContext = {
-        pagesAmount: 1,
+        pagesTotalAmount: 1,
         currentPage: 1,
         previousDisabled: false,
         nextDisabled: false
@@ -24,86 +21,83 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
 
     isModalOpen = false;
     modalContext = {
-        title: '',
+        title: null,
         items: [],
         empty: true
     };
 
-    searchContext = {
-        accountName: '',
-        priceFrom: 0,
-        priceTo: 0
+    quickFindContext = {
+        accountName: null,
+        totalPrice: null,
+        currentValue: null
     };
 
-    searchTimeout = 0;
-
-    update(data, pageNumber) {
-        var component = this;
-
-        component.accountsList = data.Accounts;
-        component.paginationContext.pagesAmount = data.PagesAmount;
-
-        if (component.paginationContext.pagesAmount < 2) {
-            component.paginationContext.previousDisabled = true;
-            component.paginationContext.nextDisabled = true;
-        } else if (pageNumber == component.paginationContext.pagesAmount) {
-            component.paginationContext.nextDisabled = true;
-            component.paginationContext.previousDisabled = false;
-        } else if (pageNumber == 1) {
-            component.paginationContext.previousDisabled = true;
-            component.paginationContext.nextDisabled = false;
-        } else {
-            component.paginationContext.previousDisabled = false;
-            component.paginationContext.nextDisabled = false;
-        }
-
-        component.paginationContext.currentPage = pageNumber;
-
-        if (component.accountsList.length < 1) {
-            component.isEmptyList = true;
-        } else {
-            component.isEmptyList = false;
-        }
-    }
+    findTimeout = 0;
 
     retrieveAndUpdate(pageNumber) {
         var component = this;
 
-        if (!component.searchContext.accountName && !component.searchContext.priceFrom && !component.searchContext.priceTo) {
-            getAccountOpportunityPage({
-                pageN: pageNumber
+        console.log(component.quickFindContext.accountName);
+
+        getPagesTotalAmount({
+            key: component.quickFindContext.accountName,
+            totalPrice: component.quickFindContext.totalPrice
+        }).then(pagesAmount => {
+            component.paginationContext.pagesTotalAmount = JSON.parse(pagesAmount);
+
+            getDataByPage({
+                p: pageNumber,
+                key: component.quickFindContext.accountName,
+                totalPrice: component.quickFindContext.totalPrice
             }).then(result => {
-                component.update(JSON.parse(result), pageNumber);
+                component.accountData = JSON.parse(result);
+
+                for (let i = 0; i < component.accountData.length; i++) {
+                    let item = component.accountData[i];
+                    item.Title = `${item.Name} (${item.Total} €)`;
+                }
+
+                if (component.accountData.length < 1) {
+                    component.isEmptyList = true;
+                } else {
+                    component.isEmptyList = false;
+                }
+
+                if (pagesAmount < 2) {
+                    component.paginationContext.previousDisabled = true;
+                    component.paginationContext.nextDisabled = true;
+                } else if (pageNumber == pagesAmount) {
+                    component.paginationContext.nextDisabled = true;
+                    component.paginationContext.previousDisabled = false;
+                } else if (pageNumber == 1) {
+                    component.paginationContext.previousDisabled = true;
+                    component.paginationContext.nextDisabled = false;
+                } else {
+                    component.paginationContext.nextDisabled = false;
+                    component.paginationContext.previousDisabled = false;
+                }
+
+                component.paginationContext.currentPage = pageNumber;
             }).catch(error => {
                 console.log(error);
             });
-        } else {
-            getAccountOpportunityPageFiltered({
-                pageN: pageNumber,
-                searchTokens: component.searchContext.accountName,
-                min: component.searchContext.priceFrom,
-                max: component.searchContext.priceTo
-            }).then(result => {
-                component.update(JSON.parse(result), pageNumber);
-            }).catch(error => {
-                console.log(error);
-            });
-        }
+        }).catch(error => {
+            console.log(error);
+        });
     }
 
     connectedCallback() {
         var component = this;
 
-        // Initial data retrieve
         if (!component.recordId) {
             component.retrieveAndUpdate(1);
         } else {
             component.isRecordPage = true;
 
-            getAccountOpportunityById({
+            getDataById({
                 id: component.recordId
             }).then(result => {
-                component.currentRecord = JSON.parse(result).Accounts[0];
+                component.accountData = JSON.parse(result)[0];
             }).catch(error => {
                 console.log(error);
             });
@@ -118,41 +112,42 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
         this.retrieveAndUpdate(this.paginationContext.currentPage - 1);
     }
 
-    handleAccountNameChange(event) {
+    handleQuickFind(event) {
         var component = this;
+        let val = event.target.value.trim();
 
-        clearTimeout(component.searchTimeout);
-        component.searchContext.accountName = event.target.value.trim();
+        clearTimeout(component.findTimeout);
 
-        component.searchTimeout = setTimeout(() => {
-            if (event.target.value !== component.searchContext.accountName) {
-                component.retrieveAndUpdate(1);
+        component.findTimeout = setTimeout(() => {
+            let tokens = val.split(' ');
+
+            if (tokens.length > 1) {
+                let last = tokens.pop();
+                let found = last.match(/\d+/g);
+
+                if (found.length > 0) {
+                    component.quickFindContext.totalPrice = last;
+                } else {
+                    tokens.push(last);
+                    component.quickFindContext.totalPrice = null;
+                }
+
+                component.quickFindContext.accountName = tokens.join(' ');
+            } else {
+                if (tokens[0].match(/\d+/g)) {
+                    component.quickFindContext.totalPrice = tokens[0];
+                    component.quickFindContext.accountName = null;
+                } else {
+                    component.quickFindContext.totalPrice = null;
+                    component.quickFindContext.accountName = tokens[0];
+                }
             }
-        }, 1000);
-    }
 
-    handleTotalPriceFromChange(event) {
-        var component = this;
-
-        clearTimeout(component.searchTimeout);
-        component.searchContext.priceFrom = parseInt(event.target.value.trim());
-
-        component.searchTimeout = setTimeout(() => {
             component.retrieveAndUpdate(1);
         }, 1000);
     }
 
-    handleTotalPriceToChange(event) {
-        var component = this;
-
-        clearTimeout(component.searchTimeout);
-        component.searchContext.priceTo = parseInt(event.target.value.trim());
-        component.searchTimeout = setTimeout(() => {
-            component.retrieveAndUpdate(1);
-        }, 1000);
-    }
-
-    openModal(event) {
+    handleOpenModal(event) {
         var component = this;
 
         let title = event.target.dataset.title;
@@ -170,7 +165,7 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
         });
     }
 
-    closeModal(event) {
+    handleCloseModal(event) {
         this.isModalOpen = false;
     }
 
