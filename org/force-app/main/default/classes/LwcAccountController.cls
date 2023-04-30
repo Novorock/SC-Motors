@@ -16,22 +16,16 @@ public with sharing class LwcAccountController {
 
         List<Object> result = builder.execute();
 
-        return JSON.serializePretty(result);
+        return JSON.serialize(result);
     }
 
     @AuraEnabled
     public static String getDataById(String id) {
         AccountDataQueryBuilder builder = new AccountDataQueryBuilder();
-
-        if (String.isNotBlank(id)) {
-            builder.setIdFilter(id);
+        builder.setIdFilter(id);
+        List<Object> result = builder.execute();
             
-            List<Object> result = builder.execute();
-            
-            return JSON.serializePretty(result);
-        }
-
-        return JSON.serialize(new List<Object>());
+        return JSON.serialize(result);
     }
 
     @AuraEnabled

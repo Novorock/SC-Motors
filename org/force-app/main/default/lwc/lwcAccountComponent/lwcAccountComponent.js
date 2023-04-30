@@ -134,8 +134,13 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
 
                 component.quickFindContext.accountName = tokens.join(' ');
             } else {
-                component.quickFindContext.totalPrice = null;
-                component.quickFindContext.accountName = tokens[0];
+                if (tokens[0].match(/\d+/g)) {
+                    component.quickFindContext.totalPrice = tokens[0];
+                    component.quickFindContext.accountName = null;
+                } else {
+                    component.quickFindContext.totalPrice = null;
+                    component.quickFindContext.accountName = tokens[0];
+                }
             }
 
             component.retrieveAndUpdate(1);

@@ -3,7 +3,7 @@ private class LwcAccountControllerTest {
 	@TestSetup
     private static void setup() {
         List<Account> accounts = new List<Account>();
-        for (Integer i = 0; i < 3; i++) {
+        for (Integer i = 0; i < 20; i++) {
             accounts.add(
             	new Account(
                 	Name='Account' + i
@@ -31,121 +31,119 @@ private class LwcAccountControllerTest {
         }
         
         insert opps;
-    }
-    
-    @IsTest
-    private static void testPagesAmountCalc() {
-        System.assertEquals(2, LwcAccountController.pagesAmountCalc(20));
-        System.assertEquals(3, LwcAccountController.pagesAmountCalc(27));
-        System.assertEquals(2, LwcAccountController.pagesAmountCalc(19));
-        System.assertEquals(1, LwcAccountController.pagesAmountCalc(0));
-    }
-    
-    @IsTest
-    private static void testCustomSerialize() {
-		List<Account> container = [
-            SELECT Account.Id, Account.Name,
-            (
-                SELECT
-                    Opportunity.Name,
-                    Opportunity.CreatedDate,
-                    Opportunity.CloseDate,
-                    Opportunity.Amount
-                FROM Opportunities
-            )
-            FROM Account
-        ];
         
-        String serialized = LwcAccountController.customSerialize(container, 0);
-        Map<String, Object> result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
+        Id pricebookId = Test.getStandardPricebookId();
         
-        try {
-        	List<Object> accounts = (List<Object>) result.get('Accounts');
-            
-            System.assert(accounts.size() == 3);
-            
-            for (Object acc : accounts) {
-                Map<String, Object> item = (Map<String, Object>) acc; 
-                List<Object> opps = (List<Object>) item.get('Opportunities'); 
-                System.assert(opps.size() == 3);
-            }
-        } catch (Exception e) {
-            System.assert(false, 'Deserialization error: ' + e.getMessage());
+        List<Product2> products = new List<Product2>();
+        
+        for (Integer i = 0; i < 3; i++) {
+            products.add(
+            	new Product2(
+                	ProductCode='PR' + i,
+                    Name='TestProduct' + i
+                )
+            );
         }
+        
+        insert products;
+        
+		List<PricebookEntry> entries = new List<PricebookEntry>();
+
+		for (Product2 p : products) {
+    		entries.add(
+    			new PricebookEntry(
+					Product2Id=p.Id,
+            		Pricebook2Id=pricebookId,
+            		UnitPrice=50,
+            		isActive=True
+        		)
+    		);
+ 		}		
+	
+		insert entries;        
+        
+		Opportunity opp = new Opportunity(
+        	Name='TestTest',
+            CloseDate=Date.today().addDays(10),
+            AccountId=accounts[3].Id,
+            StageName='Prospecting',
+			Pricebook2Id=pricebookId				            
+        );
+        
+        insert opp;
+        
+        List<OpportunityLineItem> items = new List<OpportunityLineItem>();
+        
+        for (PricebookEntry e : entries) {
+            items.add(new OpportunityLineItem(
+            	OpportunityId=opp.Id,
+                PricebookEntryId=e.Id,
+                UnitPrice=50,
+                Quantity=1
+            ));
+        }
+        
+        insert items;
     }
     
 	@IsTest
-    private static void getAccountOpportunityById() {
-		List<Account> container = [
-            SELECT Id FROM Account WHERE Name='Account0'
-        ];
+    private static void testGetPagesTotalAmount() {    	
+        System.assertEquals(2, LwcAccountController.getPagesTotalAmount(null, null));
         
-        String serialized = LwcAccountController.getAccountOpportunityById(container[0].Id);
-        Map<String, Object> result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
+        System.assertEquals(1, LwcAccountController.getPagesTotalAmount(null, '30'));
         
-        try {
-        	List<Object> accounts = (List<Object>) result.get('Accounts');
-            Map<String, Object> item = (Map<String, Object>) accounts.get(0);
-            
-            System.assertEquals('Account0', (String) item.get('Name'));
-        } catch (Exception e) {
-            System.assert(false, 'Deserialization error: ' + e.getMessage());
-        }
+        System.assertEquals(1, LwcAccountController.getPagesTotalAmount(null, '0'));
+        
+        System.assertEquals(2, LwcAccountController.getPagesTotalAmount('Account', null));
+        
+        System.assertEquals(1, LwcAccountController.getPagesTotalAmount('test_test', null));
     }
     
    	@IsTest
-    private static void testGetAccountOpportunityPage() {        
-        try {
-            String serialized = LwcAccountController.getAccountOpportunityPage(10);
-        	Map<String, Object> result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
-            
-        	List<Object> accounts = (List<Object>) result.get('Accounts');
-            
-            System.assert(accounts.size() == 0);
-            
-            serialized = LwcAccountController.getAccountOpportunityPage(1);
-        	result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
-            
-        	accounts = (List<Object>) result.get('Accounts');
-            
-            for (Object acc : accounts) {
-                Map<String, Object> item = (Map<String, Object>) acc; 
-                List<Object> opps = (List<Object>) item.get('Opportunities'); 
-                System.assert(opps.size() == 3);
-            }
-        } catch (Exception e) {
-            System.assert(false, 'Deserialization error: ' + e.getMessage());
-        }
+    private static void testGetDataByPage() {        
+		String serialized = LwcAccountController.getDataByPage(1, 'acc', null);
+    	List<Object> data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(10, data.size());
+        
+       	serialized = LwcAccountController.getDataByPage(1, 'acc', '30');
+    	data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(1, data.size());
+        
+        serialized = LwcAccountController.getDataByPage(1, null, null);
+    	data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(10, data.size());
+        
+        serialized = LwcAccountController.getDataByPage(1, 'test_test', null);
+    	data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(0, data.size());
     }
     
     @IsTest
-    private static void testGetAccountOpportunityPageFiltered() {
-   		try {
-            String serialized = LwcAccountController.getAccountOpportunityPageFiltered(1, 'Acc', 5, 40);
-        	Map<String, Object> result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
-        	List<Object> accounts = (List<Object>) result.get('Accounts');
-            
-            System.assert(accounts.size() == 1);
-            
-            try {
-            	serialized = LwcAccountController.getAccountOpportunityPageFiltered(1, '', null, null);
-            } catch (Exception e) {
-                System.assert(e instanceof AuraHandledException);
-            }
-            
-            serialized = LwcAccountController.getAccountOpportunityPageFiltered(1, 'Acc', -100, -10);
-        	result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
-        	accounts = (List<Object>) result.get('Accounts');
-            
-            System.assert(accounts.size() == 3);
-            
-            serialized = LwcAccountController.getAccountOpportunityPageFiltered(1, '', 5, 70);
-        	result = (Map<String, Object>) JSON.deserializeUntyped(serialized);
-        	accounts = (List<Object>) result.get('Accounts');
-            
-            System.assert(accounts.size() == 2);
-        } catch (Exception e) {
-            System.assert(false, 'Deserialization error: ' + e.getMessage());
-        }	
+    private static void testGetDataById() {
+		Id id = [SELECT Id FROM Account WHERE Name='Account1'].Id;		
+        
+		String serialized = LwcAccountController.getDataById('b');
+    	List<Object> data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(0, data.size());
+        
+        serialized = LwcAccountController.getDataById(id);
+    	data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(1, data.size());
+    }
+    
+    @IsTest()
+    private static void testGetProductsByOppId() {
+        Id id = [SELECT Id FROM Opportunity WHERE Name='TestTest'].Id;
+        
+		String serialized = LwcAccountController.getProductsByOppId(id);
+    	List<Object> data = (List<Object>) JSON.deserializeUntyped(serialized);
+        
+        System.assertEquals(3, data.size());
     }
 }

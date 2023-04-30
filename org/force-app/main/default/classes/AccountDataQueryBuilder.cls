@@ -1,24 +1,24 @@
 public with sharing class AccountDataQueryBuilder {
+    @TestVisible
     private Map<String, Object> binds;
+    @TestVisible
     private String limitQuery;
-    private String query;
-    private List<Id> ids;
+    @TestVisible
+	private String query;
 
     public AccountDataQueryBuilder() {
         binds = new Map<String, Object> {'Lim' => 10};
     }
-
-    private Integer build() {
+	
+    @TestVisible
+    private void build() {
         String accountQuery = 'SELECT Id FROM Account';
 
         if (binds.containsKey('AccountId')) {
             
             accountQuery = ':AccountId';
-
-        } else if (binds.containsKey('Name')) {
-            if (String.isBlank((String) binds.get('Name')))
-                return -1;
             
+        } else if (binds.containsKey('Name')) {            
             accountQuery = accountQuery + ' WHERE Name LIKE :Name';
         }
 
@@ -33,12 +33,11 @@ public with sharing class AccountDataQueryBuilder {
 
         if (String.isNotBlank(limitQuery))
             this.query += limitQuery;
-        
-        return 0;
     }
 
     public void setNameFilter(String key) {
-        binds.put('Name', key + '%');
+        if (String.isNotBlank(key))
+        	binds.put('Name', key + '%');
     }
 
     public void setTotalPriceFilter(Decimal Total) {
@@ -46,12 +45,13 @@ public with sharing class AccountDataQueryBuilder {
     }
 
     public void setIdFilter(String id) {
-        binds.put('AccountId', id);
+        if (String.isNotBlank(id))
+        	binds.put('AccountId', id);
     }
 
     public void setPage(Integer n) {
         if (n < 1)
-            return;
+			n = 1;
 
         binds.put('Offset', 
             ((Integer) binds.get('Lim')) * (n - 1)
@@ -63,8 +63,7 @@ public with sharing class AccountDataQueryBuilder {
     public List<Object> execute() {
         List<Object> result = new List<Object>();
 
-        if (build() != 0)
-            return result;
+		build();
 
         List<AggregateResult> agg = (List<AggregateResult>) Database.queryWithBinds(query, binds, AccessLevel.USER_MODE);
         List<Id> ids = new List<Id>();
@@ -101,8 +100,7 @@ public with sharing class AccountDataQueryBuilder {
     }
 
     public Integer executeCount() {
-        if (build() != 0)
-            return 0;
+		build();
 
         List<SObject> ids = Database.queryWithBinds(query, binds, AccessLevel.USER_MODE);
 
