@@ -1,0 +1,26 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <lightning-modal-header label={label}></lightning-modal-header>
+
+    <lightning-modal-body>
+        <temaplte if:true={empty}>
+            <div class="slds-text-align_center slds-text-heading_medium slds-text-color_inverse-weak">
+                The list of opportunity products is empty.
+            </div>
+        </temaplte>
+
+        <template if:false={empty}>
+            <ul class="slds-has-dividers_bottom-space">
+                <template for:each={items} for:item="item">
+                    <li key={item.Id} class="slds-item">
+                        <span class="slds-text-heading_small" style="font-weight: bold">{item.Product2.Name}</span>
+                        <ul class="slds-is-nested">
+                            <li>Quantity: {item.Quantity}</li>
+                            <li>Total price: €{item.TotalPrice}</li>
+                        </ul>
+                    </li>
+                </template>
+            </ul>
+        </template>
+    </lightning-modal-body>
+</template>

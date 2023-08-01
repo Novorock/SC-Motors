@@ -1,0 +1,16 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <lightning-button-icon tab-index="-1" disabled={previousDisabled}
+        class="slds-m-left_x-small slds slds-p-around_medium" icon-name="utility:chevronleft" variant="brand"
+        onclick={previousPage} alternative-text="Previous">
+    </lightning-button-icon>
+
+    <span>
+        {currentPage} page of {pagesTotalAmount}
+    </span>
+
+    <lightning-button-icon tab-index="-1" disabled={nextDisabled}
+        class="slds-m-left_x-small slds slds-p-around_medium" icon-name="utility:chevronright" variant="brand"
+        onclick={nextPage} alternative-text="Next">
+    </lightning-button-icon>
+</template>
