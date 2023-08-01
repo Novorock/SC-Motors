@@ -4,169 +4,104 @@ import getDataByPage from '@salesforce/apex/LwcAccountController.getDataByPage';
 import getDataById from '@salesforce/apex/LwcAccountController.getDataById';
 import getPagesTotalAmount from '@salesforce/apex/LwcAccountController.getPagesTotalAmount';
 import getProductsByOppId from '@salesforce/apex/LwcAccountController.getProductsByOppId';
+import LineItemListPopup from 'c/lineItemListPopup';
 
 export default class LwcAccountComponent extends NavigationMixin(LightningElement) {
     @api recordId;
     isRecordPage = false;
-
     accountData = [];
     isEmptyList = false;
 
-    paginationContext = {
-        pagesTotalAmount: 1,
-        currentPage: 1,
-        previousDisabled: false,
-        nextDisabled: false
-    };
+    currentPage = 1;
+    pagesTotalAmount = 10;
 
-    isModalOpen = false;
-    modalContext = {
-        title: null,
-        items: [],
-        empty: true
-    };
+    key = null;
+    price = null;
 
-    quickFindContext = {
-        accountName: null,
-        totalPrice: null,
-        currentValue: null
-    };
+    popupOpened = false;
+    popupTitle = null;
+    popupLineItems = null;
 
-    findTimeout = 0;
-
-    retrieveAndUpdate(pageNumber) {
-        var component = this;
-
-        console.log(component.quickFindContext.accountName);
-
+    refinePagesTotalAmount() {
         getPagesTotalAmount({
-            key: component.quickFindContext.accountName,
-            totalPrice: component.quickFindContext.totalPrice
+            key: this.key,
+            totalPrice: this.price
         }).then(pagesAmount => {
-            component.paginationContext.pagesTotalAmount = JSON.parse(pagesAmount);
+            this.pagesTotalAmount = JSON.parse(pagesAmount);
+        }).catch(error => {
+            console.log(error);
+        });
+    }
 
-            getDataByPage({
-                p: pageNumber,
-                key: component.quickFindContext.accountName,
-                totalPrice: component.quickFindContext.totalPrice
-            }).then(result => {
-                component.accountData = JSON.parse(result);
+    retrieveCurrentAccountList() {
+        console.log(`Key: ${this.key}`);
+        console.log(`Price ${this.price}`);
 
-                for (let i = 0; i < component.accountData.length; i++) {
-                    let item = component.accountData[i];
-                    item.Title = `${item.Name} (${item.Total} €)`;
-                }
+        getDataByPage({
+            p: this.currentPage,
+            key: this.key,
+            totalPrice: this.price
+        }).then(result => {
+            this.accountData = JSON.parse(result);
 
-                if (component.accountData.length < 1) {
-                    component.isEmptyList = true;
-                } else {
-                    component.isEmptyList = false;
-                }
+            for (let i = 0; i < this.accountData.length; i++) {
+                let item = this.accountData[i];
+                item.Title = `${item.Name} (${item.Total} €)`;
+            }
 
-                if (pagesAmount < 2) {
-                    component.paginationContext.previousDisabled = true;
-                    component.paginationContext.nextDisabled = true;
-                } else if (pageNumber == pagesAmount) {
-                    component.paginationContext.nextDisabled = true;
-                    component.paginationContext.previousDisabled = false;
-                } else if (pageNumber == 1) {
-                    component.paginationContext.previousDisabled = true;
-                    component.paginationContext.nextDisabled = false;
-                } else {
-                    component.paginationContext.nextDisabled = false;
-                    component.paginationContext.previousDisabled = false;
-                }
-
-                component.paginationContext.currentPage = pageNumber;
-            }).catch(error => {
-                console.log(error);
-            });
+            if (this.accountData.length < 1) {
+                this.isEmptyList = true;
+            } else {
+                this.isEmptyList = false;
+            }
         }).catch(error => {
             console.log(error);
         });
     }
 
     connectedCallback() {
-        var component = this;
-
-        if (!component.recordId) {
-            component.retrieveAndUpdate(1);
+        if (!this.recordId) {
+            this.currentPage = 1;
+            this.refinePagesTotalAmount();
+            this.retrieveCurrentAccountList(null, null);
         } else {
-            component.isRecordPage = true;
+            this.isRecordPage = true;
 
             getDataById({
-                id: component.recordId
+                id: this.recordId
             }).then(result => {
-                component.accountData = JSON.parse(result)[0];
+                this.accountData = JSON.parse(result)[0];
             }).catch(error => {
                 console.log(error);
             });
         }
-    }
 
-    handleNextPage(event) {
-        this.retrieveAndUpdate(this.paginationContext.currentPage + 1);
-    }
+        this.template.addEventListener("newpage", (event) => {
+            console.log(`Next page is ${event.detail.page}`);
+            this.currentPage = event.detail.page;
+            this.retrieveCurrentAccountList();
+        });
 
-    handlePreviousPage(event) {
-        this.retrieveAndUpdate(this.paginationContext.currentPage - 1);
-    }
+        this.template.addEventListener("quickfind", (event) => {
+            console.log(`Quick find is triggered with ${event.detail.name} and ${event.detail.price}`);
+            this.key = event.detail.name;
+            this.price = event.detail.price;
+            this.currentPage = 1;
+            this.refinePagesTotalAmount();
+            this.retrieveCurrentAccountList();
+        });
 
-    handleQuickFind(event) {
-        var component = this;
-        let val = event.target.value.trim();
-
-        clearTimeout(component.findTimeout);
-
-        component.findTimeout = setTimeout(() => {
-            let tokens = val.split(' ');
-
-            if (tokens.length > 1) {
-                let last = tokens.pop();
-                let found = last.match(/\d+/g);
-
-                if (found.length > 0) {
-                    component.quickFindContext.totalPrice = last;
-                } else {
-                    tokens.push(last);
-                    component.quickFindContext.totalPrice = null;
-                }
-
-                component.quickFindContext.accountName = tokens.join(' ');
-            } else {
-                if (tokens[0].match(/\d+/g)) {
-                    component.quickFindContext.totalPrice = tokens[0];
-                    component.quickFindContext.accountName = null;
-                } else {
-                    component.quickFindContext.totalPrice = null;
-                    component.quickFindContext.accountName = tokens[0];
-                }
-            }
-
-            component.retrieveAndUpdate(1);
-        }, 1000);
-    }
-
-    handleOpenModal(event) {
-        var component = this;
-
-        let title = event.target.dataset.title;
-
-        getProductsByOppId({
-            oppId: event.target.dataset.id
-        }).then(data => {
-            let products = JSON.parse(data);
-            component.modalContext.title = title;
-            component.modalContext.empty = (products.length < 1);
-            component.modalContext.items = products;
-            component.isModalOpen = true;
-        }).catch(error => {
-            console.log(error);
+        this.template.addEventListener("hidepopup", (event) => {
+            this.popupOpened = false;
         });
     }
 
-    handleCloseModal(event) {
-        this.isModalOpen = false;
+    async handleOpenPopup(event) {
+        LineItemListPopup.open({
+            label: event.target.dataset.title,
+            size: "small",
+            opportunityId: event.target.dataset.id 
+        });
     }
 
     handleRedirect(event) {

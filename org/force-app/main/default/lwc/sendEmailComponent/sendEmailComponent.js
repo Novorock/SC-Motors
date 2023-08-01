@@ -7,7 +7,7 @@ import getEmailData from '@salesforce/apex/InvoiceMailer.getEmailData';
 import getRelatedInvoicePdfId from '@salesforce/apex/InvoiceMailer.getRelatedInvoicePdfId';
 import sendEmail from '@salesforce/apex/InvoiceMailer.sendEmail';
 
-export default class SendEmailComponent extends NavigationMixin(LightningElement) {
+export default class SendEmailComponent extends LightningElement {
     @api recordId;
     emailSubject;
 
@@ -63,6 +63,7 @@ export default class SendEmailComponent extends NavigationMixin(LightningElement
             oppId: component.recordId
         }).then(id => {
             console.log(`Preview: ${id}`);
+
             component[NavigationMixin.Navigate]({
                 type: 'standard__namedPage',
                 attributes: {
