@@ -1,12 +1,11 @@
 import { LightningElement, api } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation'
-import getDataByPage from '@salesforce/apex/LwcAccountController.getDataByPage';
-import getDataById from '@salesforce/apex/LwcAccountController.getDataById';
-import getPagesTotalAmount from '@salesforce/apex/LwcAccountController.getPagesTotalAmount';
-import getProductsByOppId from '@salesforce/apex/LwcAccountController.getProductsByOppId';
+import getAccountListPage from '@salesforce/apex/LwcAccountController.getAccountListPage';
+import getAccountById from '@salesforce/apex/LwcAccountController.getAccountById';
+import getAccountListPagesAmount from '@salesforce/apex/LwcAccountController.getAccountListPagesAmount';
 import LineItemListPopup from 'c/lineItemListPopup';
 
-export default class LwcAccountComponent extends NavigationMixin(LightningElement) {
+export default class LwcAccountSalesList extends NavigationMixin(LightningElement) {
     @api recordId;
     isRecordPage = false;
     accountData = [];
@@ -23,7 +22,7 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
     popupLineItems = null;
 
     refinePagesTotalAmount() {
-        getPagesTotalAmount({
+        getAccountListPagesAmount({
             key: this.key,
             totalPrice: this.price
         }).then(pagesAmount => {
@@ -34,15 +33,12 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
     }
 
     retrieveCurrentAccountList() {
-        console.log(`Key: ${this.key}`);
-        console.log(`Price ${this.price}`);
-
-        getDataByPage({
+        getAccountListPage({
             p: this.currentPage,
             key: this.key,
             totalPrice: this.price
         }).then(result => {
-            this.accountData = JSON.parse(result);
+            this.accountData = result;
 
             for (let i = 0; i < this.accountData.length; i++) {
                 let item = this.accountData[i];
@@ -67,10 +63,10 @@ export default class LwcAccountComponent extends NavigationMixin(LightningElemen
         } else {
             this.isRecordPage = true;
 
-            getDataById({
+            getAccountById({
                 id: this.recordId
             }).then(result => {
-                this.accountData = JSON.parse(result)[0];
+                this.accountData = result;
             }).catch(error => {
                 console.log(error);
             });

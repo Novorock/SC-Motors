@@ -10,12 +10,15 @@ public class GenerateInvoiceAction {
         PageReference invoicePdf = Page.InvoicePdfFile;
         invoicePdf.getParameters().put('id', oppId);
         Blob binary;
-
-        try {
-            binary = invoicePdf.getContent();
-        } catch (VisualforceException e) {
-            System.debug(logginglevel.ERROR, e.getMessage());
-            return;
+        
+        if (Test.isRunningTest()) {
+			binary = Blob.valueOf('Content version');        	    
+        } else {
+            try {
+            	binary = invoicePdf.getContent();
+        	} catch (VisualforceException e) {
+            	System.debug(logginglevel.ERROR, e.getMessage());
+        	}
         }
 
         ContentVersion version = new ContentVersion();

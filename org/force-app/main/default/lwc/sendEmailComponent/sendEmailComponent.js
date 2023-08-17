@@ -40,7 +40,7 @@ export default class SendEmailComponent extends LightningElement {
         getEmailData({
             oppId: component.recordId
         }).then(result => {
-            let data = JSON.parse(result);
+            let data = result;
             component.emailSubject = data.subject;
             component.emailBody = data.body;
 

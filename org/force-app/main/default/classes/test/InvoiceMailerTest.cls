@@ -33,10 +33,7 @@ private class InvoiceMailerTest {
     @IsTest
     private static void testGetEmailData() {
    		Opportunity opp = [SELECT Id, Invoice_Number__c FROM Opportunity WHERE Name='Test Opportunity'];
-        
-        String serialized = InvoiceMailer.getEmailData(opp.Id);
-        Map<String, Object> emailData = (Map<String, Object>) JSON.deserializeUntyped(serialized);
-        
+        Map<String, Object> emailData = InvoiceMailer.getEmailData(opp.Id);
         System.assert(emailData.containsKey('subject'));
         
         try {
