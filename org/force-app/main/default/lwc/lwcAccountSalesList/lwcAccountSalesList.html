@@ -29,11 +29,11 @@
                         <tbody>
                             <template for:each={accountData.Opportunities} for:item="opp">
                                 <tr key={opp.Id} class="slds-hint-parent" role="gridcell">
-                                    <th data-label="Opportunity Name" scope="row">
+                                    <td data-label="Opportunity Name" scope="row">
                                         <div class="slds-truncate" title={opp.Name}>
                                             <a data-id={opp.Id} onclick={handleRedirect} tabindex="-1">{opp.Name}</a>
                                         </div>
-                                    </th>
+                                    </td>
 
                                     <td data-label="Created Date" role="gridcell">
                                         <div class="slds-truncate" title="Created Date">
@@ -114,12 +114,12 @@
                                     <tbody>
                                         <template for:each={item.Opportunities} for:item="opp">
                                             <tr key={opp.Id} class="slds-hint-parent" role="gridcell">
-                                                <th data-label="Opportunity Name" scope="row">
+                                                <td data-label="Opportunity Name" scope="row">
                                                     <div class="slds-truncate" title={opp.Name}>
                                                         <a data-id={opp.Id} onclick={handleRedirect}
                                                             tabindex="-1">{opp.Name}</a>
                                                     </div>
-                                                </th>
+                                                </td>
 
                                                 <td data-label="Created Date" role="gridcell">
                                                     <div class="slds-truncate" title="Created Date">

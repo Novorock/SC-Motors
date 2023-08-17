@@ -85,3 +85,23 @@ System.debug(LwcAccountController.getDataById('0012w00001Kunf8AAB'));
 
 System.debug(LwcAccountController.getProductsByOppId('0062w00000Lp6OVAAZ'));
 
+List<Payment__c> payments = new List<Payment__c>{
+    new Payment__c(
+        OpportunityName__c='Roma',
+        Amount__c=100
+    ),
+    new Payment__c(
+        OpportunityName__c='Roma',
+        Amount__c=60
+    ),
+    new Payment__c(
+        OpportunityName__c='Pavel',
+        Amount__c=150
+    )
+};
+PaymentAggregator aggregator = new PaymentAggregator(payments);
+CustomPaymentIterator iterator = aggregator.iterator();
+while (iterator.hasNext()) {
+    System.debug(iterator.next().OpportunityName__c);
+}
+

@@ -12,7 +12,7 @@ export default class LineItemListPopup extends LightningModal {
             oppId: this.opportunityId
         })
         .then((result) => {
-            this.items = JSON.parse(result);
+            this.items = result;
             this.empty = (this.items.length < 1);
         }).catch((error) => {
             console.log(error);

@@ -87,63 +87,51 @@ private class LwcAccountControllerTest {
     }
     
 	@IsTest
-    private static void testGetPagesTotalAmount() {    	
-        System.assertEquals(2, LwcAccountController.getPagesTotalAmount(null, null));
+    private static void testGetAccountListPagesAmount() {    	
+        System.assertEquals(2, LwcAccountController.getAccountListPagesAmount(null, null));
         
-        System.assertEquals(1, LwcAccountController.getPagesTotalAmount(null, '30'));
+        System.assertEquals(1, LwcAccountController.getAccountListPagesAmount(null, '30'));
         
-        System.assertEquals(1, LwcAccountController.getPagesTotalAmount(null, '0'));
+        System.assertEquals(1, LwcAccountController.getAccountListPagesAmount(null, '0'));
         
-        System.assertEquals(2, LwcAccountController.getPagesTotalAmount('Account', null));
+        System.assertEquals(2, LwcAccountController.getAccountListPagesAmount('Account', null));
         
-        System.assertEquals(1, LwcAccountController.getPagesTotalAmount('test_test', null));
+        System.assertEquals(1, LwcAccountController.getAccountListPagesAmount('test_test', null));
     }
     
    	@IsTest
-    private static void testGetDataByPage() {        
-		String serialized = LwcAccountController.getDataByPage(1, 'acc', null);
-    	List<Object> data = (List<Object>) JSON.deserializeUntyped(serialized);
-        
+    private static void testGetAccountListPage() {        
+    	List<Object> data = LwcAccountController.getAccountListPage(1, 'acc', null);
         System.assertEquals(10, data.size());
         
-       	serialized = LwcAccountController.getDataByPage(1, 'acc', '30');
-    	data = (List<Object>) JSON.deserializeUntyped(serialized);
-        
+    	data = LwcAccountController.getAccountListPage(1, 'acc', '30');        
         System.assertEquals(1, data.size());
         
-        serialized = LwcAccountController.getDataByPage(1, null, null);
-    	data = (List<Object>) JSON.deserializeUntyped(serialized);
-        
+        data = LwcAccountController.getAccountListPage(1, null, null);
         System.assertEquals(10, data.size());
         
-        serialized = LwcAccountController.getDataByPage(1, 'test_test', null);
-    	data = (List<Object>) JSON.deserializeUntyped(serialized);
+        data = LwcAccountController.getAccountListPage(1, 'test_test', null);
+        System.assertEquals(0, data.size());
         
+        data = LwcAccountController.getAccountListPage(-5, 'test_test', null);
         System.assertEquals(0, data.size());
     }
     
     @IsTest
-    private static void testGetDataById() {
+    private static void testGetAccountById() {
 		Id id = [SELECT Id FROM Account WHERE Name='Account1'].Id;		
         
-		String serialized = LwcAccountController.getDataById('b');
-    	List<Object> data = (List<Object>) JSON.deserializeUntyped(serialized);
+		Object data = LwcAccountController.getAccountById('b');    
+        System.assertEquals(null, data);
         
-        System.assertEquals(0, data.size());
-        
-        serialized = LwcAccountController.getDataById(id);
-    	data = (List<Object>) JSON.deserializeUntyped(serialized);
-        
-        System.assertEquals(1, data.size());
+        data = LwcAccountController.getAccountById(id);
+        System.assertNotEquals(null, data);
     }
     
     @IsTest()
     private static void testGetProductsByOppId() {
         Id id = [SELECT Id FROM Opportunity WHERE Name='TestTest'].Id;
-        
-		String serialized = LwcAccountController.getProductsByOppId(id);
-    	List<Object> data = (List<Object>) JSON.deserializeUntyped(serialized);
-        
-        System.assertEquals(3, data.size());
+        List<OpportunityLineItem> lineItems = LwcAccountController.getProductsByOppId(id);        
+        System.assertEquals(3, lineItems.size());
     }
 }

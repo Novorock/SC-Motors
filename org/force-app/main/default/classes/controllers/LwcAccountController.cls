@@ -1,6 +1,6 @@
 public with sharing class LwcAccountController {
     @AuraEnabled
-    public static String getDataByPage(Integer p, String key, String totalPrice) {
+    public static List<Object> getAccountListPage(Integer p, String key, String totalPrice) {
 		AccountDataQueryBuilder builder = new AccountDataQueryBuilder();
 
         if (String.isNotBlank(key)) {
@@ -13,23 +13,24 @@ public with sharing class LwcAccountController {
         }
 
         builder.setPage(p);
-
-        List<Object> result = builder.execute();
-
-        return JSON.serialize(result);
+        
+        return builder.execute();
     }
 
     @AuraEnabled
-    public static String getDataById(String id) {
+    public static Object getAccountById(String id) {
         AccountDataQueryBuilder builder = new AccountDataQueryBuilder();
         builder.setIdFilter(id);
         List<Object> result = builder.execute();
-            
-        return JSON.serialize(result);
+        if (result.size() > 0) {
+            return result.get(0);
+        } else {
+            return null;
+        }
     }
 
     @AuraEnabled
-    public static Integer getPagesTotalAmount(String key, String totalPrice) {
+    public static Integer getAccountListPagesAmount(String key, String totalPrice) {
     	AccountDataQueryBuilder builder = new AccountDataQueryBuilder();
         
         if (String.isNotBlank(key)) {
@@ -51,13 +52,13 @@ public with sharing class LwcAccountController {
     }
 
     @AuraEnabled
-    public static String getProductsByOppId(String oppId) {
+    public static List<OpportunityLineItem> getProductsByOppId(String oppId) {
         List<OpportunityLineItem> products = [
             SELECT Id, Product2.Name, Quantity, TotalPrice
             FROM OpportunityLineItem
             WHERE OpportunityId =:oppId
         ];
         
-        return JSON.serialize(products);
+        return products;
     }
 }

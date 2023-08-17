@@ -1,6 +1,6 @@
 public with sharing class InvoiceMailer {
     @AuraEnabled
-    public static String getEmailData(String oppId) {
+    public static Map<String, Object> getEmailData(String oppId) {
         Opportunity opp = [
             SELECT Invoice_Number__c
             FROM Opportunity
@@ -29,11 +29,11 @@ public with sharing class InvoiceMailer {
         Messaging.RenderEmailTemplateBodyResult renderedEmail =
             Messaging.renderEmailTemplate(Primary.Contact.Id, oppId, new List<String> {template.Body}).get(0);
 
-        String emailData = JSON.serialize(new Map<String, Object> {
-            'subject' => opp.Invoice_Number__c, 'recipient' => recipient, 'body' => renderedEmail.getMergedBody()
-        });
-
-        return emailData;
+        return new Map<String, Object>{
+            'subject' => opp.Invoice_Number__c,
+            'recipient' => recipient,
+            'body' => renderedEmail.getMergedBody()
+        };
     }
 
     @AuraEnabled
