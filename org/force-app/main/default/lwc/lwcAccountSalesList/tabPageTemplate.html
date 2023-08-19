@@ -1,0 +1,101 @@
+<template>
+    <lightning-card>
+        <div class="slds-grid" slot="title">
+            <div class="slds-col">
+                <lightning-icon icon-name="utility:money" size="small"></lightning-icon>
+            </div>
+
+            <div class="slds-col slds-p-left_x-small">
+                Account Sales List
+            </div>
+        </div>
+
+        <div slot="footer">
+            <c-paginator current-page={currentPage} pages-total-amount={pagesTotalAmount}></c-paginator>
+        </div>
+
+        <div class="c-container" style="border-top: 2px solid #e5e5e5">
+            <c-account-quick-find></c-account-quick-find>
+
+            <lightning-accordion>
+                <template if:false={isEmptyList} for:each={records} for:item="record">
+                    <lightning-accordion-section class="slds-grid" key={record.account.Id} label={record.title}>
+                        <div style="margin: 0 auto" class="slds-scrollable slds-size_10-of-12">
+                            <table style="border-bottom: none"
+                                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped"
+                                role="grid" aria-labelledby="element-with-table-label other-element-with-table-label">
+                                <thead>
+                                    <th scope="col">Opportunity Name</th>
+                                    <th scope="col">Created Date</th>
+                                    <th scope="col">Close Date</th>
+                                    <th scope="col">Amount</th>
+
+                                    <th class="slds-cell_action-mode" scope="col" style="width:3.25rem">
+                                        <div class="slds-truncate slds-assistive-text" title="Actions">Actions</div>
+                                    </th>
+                                </thead>
+
+                                <tbody>
+                                    <template for:each={record.account.Opportunities} for:item="opportunity">
+                                        <tr key={opportunity.Id} class="slds-hint-parent" role="gridcell">
+                                            <td data-label="Opportunity Name" scope="row">
+                                                <div class="slds-truncate" title={opportunity.Name}>
+                                                    <a data-id={opportunity.Id} onclick={handleRedirect}
+                                                        tabindex="-1">{opportunity.Name}</a>
+                                                </div>
+                                            </td>
+
+                                            <td data-label="Created Date" role="gridcell">
+                                                <div class="slds-truncate" title="Created Date">
+                                                    <lightning-formatted-date-time value={opportunity.CreatedDate}
+                                                        year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                        minute="2-digit">
+                                                    </lightning-formatted-date-time>
+                                                </div>
+                                            </td>
+
+                                            <td data-label="Close Date" role="gridcell">
+                                                <div class="slds-truncate" title="Close Date">
+                                                    <lightning-formatted-date-time value={opportunity.CloseDate}
+                                                        year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                        minute="2-digit">
+                                                    </lightning-formatted-date-time>
+                                                </div>
+                                            </td>
+
+                                            <td data-label="Created Date" role="gridcell">
+                                                <div class="slds-truncate" title="Amount">
+                                                    <lightning-formatted-number value={opportunity.Amount}
+                                                        format-style="currency"
+                                                        currency-code="EUR"></lightning-formatted-number>
+                                                </div>
+                                            </td>
+
+                                            <td class="slds-cell_action-mode" role="gridcell">
+                                                <lightning-button-icon class="slds-m-left_xx-small"
+                                                    icon-name="utility:list" data-id={opportunity.Id}
+                                                    data-title={opportunity.Name} variant="brand"
+                                                    onclick={handleOpenPopup} alternative-text="Details">
+                                                </lightning-button-icon>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </lightning-accordion-section>
+                </template>
+            </lightning-accordion>
+
+            <template if:true={isEmptyList}>
+                <div class="slds-text-align_center slds-text-heading_medium slds-text-color_inverse-weak">
+                    No accounts were found.
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+
+    <template if:true={popupOpened}>
+        <c-line-item-list-popup title={popupTitle} items={popupLineItems}></c-line-item-list-popup>
+    </template>
+</template>

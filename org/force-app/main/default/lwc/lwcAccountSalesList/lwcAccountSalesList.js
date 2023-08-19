@@ -1,51 +1,38 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation'
-import getAccountListPage from '@salesforce/apex/LwcAccountController.getAccountListPage';
-import getAccountById from '@salesforce/apex/LwcAccountController.getAccountById';
-import getAccountListPagesAmount from '@salesforce/apex/LwcAccountController.getAccountListPagesAmount';
+import getPageData from '@salesforce/apex/AccountOpportunityDataService.getPageData';
+import getDataById from '@salesforce/apex/AccountOpportunityDataService.getDataById';
 import LineItemListPopup from 'c/lineItemListPopup';
+import recordPageTemplate from './recordPageTemplate.html';
+import tabPageTemplate from './tabPageTemplate.html';
+
 
 export default class LwcAccountSalesList extends NavigationMixin(LightningElement) {
     @api recordId;
-    isRecordPage = false;
-    accountData = [];
+    records = [];
+    @track
+    record = {
+        account: {},
+        totalAmount: null
+    };
     isEmptyList = false;
-
-    currentPage = 1;
-    pagesTotalAmount = 10;
-
+    pagesTotalAmount = 1;
     key = null;
     price = null;
-
     popupOpened = false;
     popupTitle = null;
     popupLineItems = null;
 
-    refinePagesTotalAmount() {
-        getAccountListPagesAmount({
+    refineCurrentPage(currentPage) {
+        getPageData({
+            p: currentPage,
             key: this.key,
-            totalPrice: this.price
-        }).then(pagesAmount => {
-            this.pagesTotalAmount = JSON.parse(pagesAmount);
-        }).catch(error => {
-            console.log(error);
-        });
-    }
+            amount: this.price
+        }).then(pageData => {
+            this.records = pageData.payload.records;
+            this.pagesTotalAmount = pageData.pagination.totalPages;
 
-    retrieveCurrentAccountList() {
-        getAccountListPage({
-            p: this.currentPage,
-            key: this.key,
-            totalPrice: this.price
-        }).then(result => {
-            this.accountData = result;
-
-            for (let i = 0; i < this.accountData.length; i++) {
-                let item = this.accountData[i];
-                item.Title = `${item.Name} (${item.Total} €)`;
-            }
-
-            if (this.accountData.length < 1) {
+            if (this.records.length < 1) {
                 this.isEmptyList = true;
             } else {
                 this.isEmptyList = false;
@@ -57,46 +44,46 @@ export default class LwcAccountSalesList extends NavigationMixin(LightningElemen
 
     connectedCallback() {
         if (!this.recordId) {
-            this.currentPage = 1;
-            this.refinePagesTotalAmount();
-            this.retrieveCurrentAccountList(null, null);
-        } else {
-            this.isRecordPage = true;
+            this.refineCurrentPage(1);
 
-            getAccountById({
+            this.template.addEventListener("newpage", (event) => {
+                console.log(`Next page is ${event.detail.page}`);
+                this.refineCurrentPage(event.detail.page);
+            });
+
+            this.template.addEventListener("quickfind", (event) => {
+                console.log(`Quick find is triggered with ${event.detail.name} and ${event.detail.price}`);
+                this.key = event.detail.name;
+                this.price = event.detail.price;
+                this.refineCurrentPage(1);
+            });
+        } else {
+            getDataById({
                 id: this.recordId
-            }).then(result => {
-                this.accountData = result;
-            }).catch(error => {
-                console.log(error);
+            }).then((record) => {
+                console.log(record);
+                this.record = record;
+            }).catch((error) => {
+                console.log(error)
             });
         }
-
-        this.template.addEventListener("newpage", (event) => {
-            console.log(`Next page is ${event.detail.page}`);
-            this.currentPage = event.detail.page;
-            this.retrieveCurrentAccountList();
-        });
-
-        this.template.addEventListener("quickfind", (event) => {
-            console.log(`Quick find is triggered with ${event.detail.name} and ${event.detail.price}`);
-            this.key = event.detail.name;
-            this.price = event.detail.price;
-            this.currentPage = 1;
-            this.refinePagesTotalAmount();
-            this.retrieveCurrentAccountList();
-        });
 
         this.template.addEventListener("hidepopup", (event) => {
             this.popupOpened = false;
         });
     }
 
-    async handleOpenPopup(event) {
+    render() {
+        return this.recordId ? recordPageTemplate : tabPageTemplate;
+    }
+
+    handleOpenPopup(event) {
+        event.target?.blur();
+
         LineItemListPopup.open({
             label: event.target.dataset.title,
             size: "small",
-            opportunityId: event.target.dataset.id 
+            opportunityId: event.target.dataset.id
         });
     }
 
