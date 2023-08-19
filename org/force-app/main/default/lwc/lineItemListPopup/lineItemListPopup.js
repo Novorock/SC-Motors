@@ -1,6 +1,6 @@
 import { api } from 'lwc';
 import LightningModal from 'lightning/modal';
-import getProductsByOppId from '@salesforce/apex/LwcAccountController.getProductsByOppId';
+import getProductsByOppId from '@salesforce/apex/AccountOpportunityDataService.getProductsByOppId';
 
 export default class LineItemListPopup extends LightningModal {
     @api opportunityId;

@@ -1,4 +1,4 @@
-import { LightningElement, api } from "lwc";
+import { LightningElement, api, track } from "lwc";
 import getScheduledJobStatus from '@salesforce/apex/JobSchedulerService.getJobStatus';
 import scheduleJob from '@salesforce/apex/JobSchedulerService.schedule';
 import abortJob from '@salesforce/apex/JobSchedulerService.abort';
@@ -35,9 +35,9 @@ export default class BatchScheduler extends LightningElement {
   subscription = {};
   jobName = "Lwc Scope Job";
   jobScheduled = false;
-  cron = ""
   cronTip = "Example: CronExpression<0 15 10 * * ? 2005> Fire at 10:15 AM every day during the year 2005";
-
+  cron = ""
+  
   scheduleButtonVariant = BUTTON_VARIANT.brand;
   scheduleButtonLabel = BUTTON_LABEL.brand;
 
@@ -86,6 +86,8 @@ export default class BatchScheduler extends LightningElement {
   }
 
   scheduleJob() {
+    console.log(this.cron);
+
     scheduleJob({
       jobName: this.jobName,
       cron: this.cron,
@@ -137,13 +139,15 @@ export default class BatchScheduler extends LightningElement {
       this.jobScheduled = false;
 
       if (asyncJobStatus == null) {
+        this.cron = ""
         return;
       }
 
       let state = asyncJobStatus.CronTrigger.State;
-      console.log(state);
+      this.cron = asyncJobStatus.CronTrigger.CronExpression;
+
       if ('COMPLETE' !== state && 'DELETED' !== state) {
-        this.jobScheduled = true;
+        this.jobScheduled = true;       
       } else {
         this.abortJob();
       }
@@ -163,7 +167,6 @@ export default class BatchScheduler extends LightningElement {
       this.abortJob();
     }
   }
-
 
   handleRunOnceButton(event) {
     event.target?.blur();

@@ -20,8 +20,8 @@
 								content={cronTip}></lightning-helptext></span>
 					</label>
 					<div class="slds-form-element__control">
-						<input type="text" id="cron-input-id" onchange={inputChange} placeholder="Cron Expression"
-							disabled={jobScheduled} class="slds-input" />
+						<input type="text" id="cron-input-id" value={cron} onchange={inputChange} disabled={jobScheduled}
+							placeholder="Cron Expression" class="slds-input" />
 					</div>
 				</div>
 			</div>
