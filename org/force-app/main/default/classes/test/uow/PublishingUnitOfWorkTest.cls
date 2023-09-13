@@ -4,11 +4,13 @@ public with sharing class PublishingUnitOfWorkTest {
     private static void setup() {
     	List<Opportunity> opportunities = new List<Opportunity>();
         
-        String stage = 'Prospecting';
-        Date closeDate = Date.today().addDays(5);
-        
         for (Integer i = 0; i < 3; i++) {
-        	opportunities.add(new Opportunity(Name='Opportunity' + i, StageName=stage, Amount=200, CloseDate=closeDate));  
+        	opportunities.add(new Opportunity(
+                Name='Opportunity' + i,
+                StageName='Prospecting',
+                Amount=200,
+                CloseDate=Date.today().addDays(5)
+            ));  
         }
         
         insert opportunities;

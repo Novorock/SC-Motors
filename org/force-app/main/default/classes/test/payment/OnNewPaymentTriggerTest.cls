@@ -31,6 +31,7 @@ public class OnNewPaymentTriggerTest {
 	@IsTest
     private static void testOnNewPaymentTrigger() {
    		List<Payment__c> payments = new List<Payment__c>();
+
 		payments.addAll(
             new List<Payment__c>{
                 new Payment__c(OpportunityName__c='Opportunity0', Amount__c=20),
@@ -41,9 +42,8 @@ public class OnNewPaymentTriggerTest {
         
         insert payments;
         
-        Opportunity opportunity0 = [SELECT StageName FROM Opportunity WHERE Name='Opportunity0' LIMIT 1];
-        System.assertEquals('Fully Paid', opportunity0.StageName);
-        Opportunity opportunity1 = [SELECT StageName FROM Opportunity WHERE Name='Opportunity1' LIMIT 1];
-        System.assertEquals('Partially Paid', opportunity1.StageName);
+        System.assertEquals('Fully Paid', [SELECT StageName FROM Opportunity WHERE Name='Opportunity0' LIMIT 1].StageName);
+        System.assertEquals(1, [SELECT COUNT() FROM Task WHERE Subject='Delivery of goods']);
+        System.assertEquals('Partially Paid', [SELECT StageName FROM Opportunity WHERE Name='Opportunity1' LIMIT 1].StageName);
     }
 }

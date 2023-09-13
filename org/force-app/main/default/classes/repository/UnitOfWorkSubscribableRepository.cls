@@ -1,4 +1,4 @@
-public with sharing class UnitOfWorkSubscribableRepository implements ISubscriber, Repository {
+public with sharing class UnitOfWorkSubscribableRepository implements ISubscriber, Repository, GetByNameRepository {
     @TestVisible
     private SObjectType sObjectType;
     @TestVisible
