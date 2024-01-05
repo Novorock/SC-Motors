@@ -7,7 +7,7 @@ import getEmailData from '@salesforce/apex/InvoiceMailer.getEmailData';
 import getRelatedInvoicePdfId from '@salesforce/apex/InvoiceMailer.getRelatedInvoicePdfId';
 import sendEmail from '@salesforce/apex/InvoiceMailer.sendEmail';
 
-export default class SendEmailComponent extends LightningElement {
+export default class SendEmailComponent extends NavigationMixin(LightningElement) {
     @api recordId;
     emailSubject;
 
@@ -35,18 +35,16 @@ export default class SendEmailComponent extends LightningElement {
     }
 
     connectedCallback() {
-        var component = this;
-
         getEmailData({
-            oppId: component.recordId
+            oppId: this.recordId
         }).then(result => {
             let data = result;
-            component.emailSubject = data.subject;
-            component.emailBody = data.body;
+            this.emailSubject = data.subject;
+            this.emailBody = data.body;
 
-            component.recipientId = data.recipient.Id;
-            component.recipientName = data.recipient.Name;
-            component.recipientEmail = data.recipient.Email;
+            this.recipientId = data.recipient.Id;
+            this.recipientName = data.recipient.Name;
+            this.recipientEmail = data.recipient.Email;
         }).catch(error => {
             console.log(error);
         })
@@ -57,14 +55,12 @@ export default class SendEmailComponent extends LightningElement {
     }
 
     handlePreview() {
-        var component = this;
-
         getRelatedInvoicePdfId({
-            oppId: component.recordId
+            oppId: this.recordId
         }).then(id => {
             console.log(`Preview: ${id}`);
 
-            component[NavigationMixin.Navigate]({
+            this[NavigationMixin.Navigate]({
                 type: 'standard__namedPage',
                 attributes: {
                     pageName: 'filePreview'
@@ -75,7 +71,7 @@ export default class SendEmailComponent extends LightningElement {
             });
         }).catch(error => {
             console.log(error);
-            component.dispatchEvent(new ShowToastEvent({
+            this.dispatchEvent(new ShowToastEvent({
                 title: 'Failure',
                 message: 'Errors occured during the file opening: ' + error.body.message,
                 variant: 'error'
@@ -84,23 +80,21 @@ export default class SendEmailComponent extends LightningElement {
     }
 
     handleSend() {
-        var component = this;
-
         sendEmail({
-            subject: component.emailSubject,
-            body: component.emailBody,
-            recipientId: component.recipientId,
-            relatedToId: component.recordId
+            subject: this.emailSubject,
+            body: this.emailBody,
+            recipientId: this.recipientId,
+            relatedToId: this.recordId
         }).then(result => {
-            component.dispatchEvent(new CloseActionScreenEvent());
-            component.dispatchEvent(new ShowToastEvent({
+            this.dispatchEvent(new CloseActionScreenEvent());
+            this.dispatchEvent(new ShowToastEvent({
                 title: 'Success',
                 message: 'Message was sent successfully.',
                 variant: 'success'
             }));
         }).catch(error => {
             console.log(error);
-            component.dispatchEvent(new ShowToastEvent({
+            this.dispatchEvent(new ShowToastEvent({
                 title: 'Failure',
                 message: 'Error occurred during the email sending: ' + error.body.message,
                 variant: 'error'

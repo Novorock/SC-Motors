@@ -7,6 +7,7 @@ trigger OnNewPayment on Payment__c (after insert) {
 
 	PublishingUnitOfWork uow = new PublishingUnitOfWork();
 	UnitOfWorkSubscribableRepository repository = new UnitOfWorkSubscribableRepository(Opportunity.getSObjectType());
+	uow.subscribe(repository);
 	repository.fetch(new OpportunityQueryByName(keys));
 
 	for (Payment__c payment : Trigger.new) {

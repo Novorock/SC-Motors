@@ -8,3 +8,4 @@ The salesforce application to automate routine work of managers and salers in th
 2) Flow processes to automate the Accounts and Contacts data filling properely.
 3) Auto-generated invoices.
 4) Auto-generated email with the attachment of invoice. There is a LW component to edit the message template.  
+5) Payment process
